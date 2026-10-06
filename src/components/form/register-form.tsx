@@ -1,12 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegistration } from "@/hooks";
 import { registrationSchema } from "@/validation";
+import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -20,6 +21,8 @@ export function RegisterForm() {
     confirmPassword: "",
   });
   const [formError, setFormError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const setValue = (field: keyof typeof values, value: string) =>
     setValues((current) => ({ ...current, [field]: value }));
@@ -55,12 +58,11 @@ export function RegisterForm() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-primary">Student account</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
           Create your account
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          We’ll email you a verification code to finish setting up your account.
+          We'll email you a verification code to finish setting up your account.
         </p>
       </div>
       <form onSubmit={(event) => void onSubmit(event)} className="space-y-4">
@@ -123,30 +125,56 @@ export function RegisterForm() {
           className="flex flex-col gap-2 text-sm font-medium"
         >
           Password
-          <Input
-            id="register-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={values.password}
-            onChange={(event) => setValue("password", event.target.value)}
-          />
+          <span className="relative">
+            <Input
+              id="register-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="new-password"
+              required
+              value={values.password}
+              onChange={(event) => setValue("password", event.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </span>
         </label>
         <label
           htmlFor="register-confirm-password"
           className="flex flex-col gap-2 text-sm font-medium"
         >
           Confirm password
-          <Input
-            id="register-confirm-password"
-            type="password"
-            autoComplete="new-password"
-            required
-            value={values.confirmPassword}
-            onChange={(event) =>
-              setValue("confirmPassword", event.target.value)
-            }
-          />
+          <span className="relative">
+            <Input
+              id="register-confirm-password"
+              type={showConfirmPassword ? "text" : "password"}
+              autoComplete="new-password"
+              required
+              value={values.confirmPassword}
+              onChange={(event) =>
+                setValue("confirmPassword", event.target.value)
+              }
+              className="pr-10"
+            />
+            <button
+              type="button"
+              aria-label={
+                showConfirmPassword ? "Hide password" : "Show password"
+              }
+              aria-pressed={showConfirmPassword}
+              onClick={() => setShowConfirmPassword((visible) => !visible)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </span>
         </label>
         {formError && (
           <p

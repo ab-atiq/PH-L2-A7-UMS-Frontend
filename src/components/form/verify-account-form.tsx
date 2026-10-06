@@ -1,9 +1,5 @@
 "use client";
 
-import { useQueryClient } from "@tanstack/react-query";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useRouter, useSearchParams } from "next/navigation";
-import { type FormEvent, useEffect, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +18,10 @@ import {
 } from "@/components/ui/input-otp";
 import { toast } from "@/components/ui/toast";
 import { useVerifyAccount } from "@/hooks";
+import { useQueryClient } from "@tanstack/react-query";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import { useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, useEffect, useState } from "react";
 
 export default function VerifyAccountForm() {
   const searchParams = useSearchParams();

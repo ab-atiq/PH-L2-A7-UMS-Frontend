@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-A production-quality **Next.js frontend** for the University Management System. The frontend is a pure consumer of the backend REST API (`/api/v1`) — it must **never** implement business logic locally. It should feel like a real university ERP/SaaS product, not a generic CRUD dashboard.
+A production-quality **Next.js frontend** for the University Management System. The frontend is a pure consumer of the backend REST API under `/api/v1` — it must **never** implement business logic locally. It should feel like a real university ERP/SaaS product, not a generic CRUD dashboard.
 
 ---
 

@@ -37,7 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       )}
     >
       <Providers>
-        <body className="min-h-full flex flex-col" nighteye="disabled">
+        <body className="min-h-full flex flex-col">
           {children}
           <Toaster />
         </body>

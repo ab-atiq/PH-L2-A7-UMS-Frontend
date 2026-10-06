@@ -1,6 +1,6 @@
-import Link from "next/link";
 import Logo from "@/assets/svg/Logo";
 import { RegisterForm } from "@/components/form/register-form";
+import Link from "next/link";
 
 export default function RegisterPage() {
   return (
@@ -31,8 +31,16 @@ export default function RegisterPage() {
             Start your next chapter here.
           </h2>
           <p className="mt-4 leading-7 text-slate-300">
+            Create your account today and embark on your academic journey with
+            us.
+          </p>
+          <p className="mt-4 leading-7 text-slate-300">
             Create your student profile to access course registration and
             academic services.
+          </p>
+          <p className="mt-4 leading-7 text-slate-300">
+            Create your facalty profile to access course management and academic
+            services.
           </p>
         </div>
       </div>

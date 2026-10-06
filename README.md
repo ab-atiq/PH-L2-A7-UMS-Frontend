@@ -13,7 +13,8 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api/v1
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 ```
 
-Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin plus `/api/v1`. Google
+Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin plus `/api/v1`. The
+backend mounts routes such as `/auth` and `/user` under that prefix. Google
 sign-in is shown only when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is configured. The
 backend must allow the frontend origin with credentialed CORS for cookie-based
 authentication.
