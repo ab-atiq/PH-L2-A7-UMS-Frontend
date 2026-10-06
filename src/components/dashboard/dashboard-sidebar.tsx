@@ -1,5 +1,8 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import Logo from "@/assets/svg/Logo";
 import {
   Sidebar,
   SidebarContent,
@@ -12,25 +15,19 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import Logo from "@/assets/svg/Logo";
-import { UserRole } from "@/types";
-import { adminRoutes, doctorRoutes, patientRoutes } from "@/routes";
-import { SidebarItems } from "@/types/sidebar.type";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { adminRoutes, facultyRoutes, studentRoutes } from "@/routes";
+import type { UserRole } from "@/types";
+import type { SidebarItems } from "@/types/sidebar.type";
 
 const sidebarRoutes: Partial<Record<UserRole, SidebarItems>> = {
-  SUPER_ADMIN: adminRoutes,
   ADMIN: adminRoutes,
-  DOCTOR: doctorRoutes,
-  PATIENT: patientRoutes,
+  FACULTY: facultyRoutes,
+  STUDENT: studentRoutes,
 };
 
-export function DashboardSidebar({ role }: { role: UserRole }) {
+export function DashboardSidebar({ userRole }: { userRole: UserRole }) {
   const pathname = usePathname();
-  const routes: SidebarItems = sidebarRoutes[role] || [];
-
-  console.log(pathname);
+  const routes: SidebarItems = sidebarRoutes[userRole] || [];
 
   return (
     <Sidebar>
@@ -38,7 +35,7 @@ export function DashboardSidebar({ role }: { role: UserRole }) {
         <Link href="/">
           <div className="flex items-center gap-2">
             <Logo />
-            <span>PH Healthcare</span>
+            <span>University Portal</span>
           </div>
         </Link>
       </SidebarHeader>
@@ -52,7 +49,11 @@ export function DashboardSidebar({ role }: { role: UserRole }) {
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton
                       render={<Link href={item.url} />}
-                      isActive={pathname === item.url}
+                      isActive={
+                        pathname === item.url ||
+                        (item.url !== "/dashboard" &&
+                          pathname.startsWith(`${item.url}/`))
+                      }
                     >
                       {item.title}
                     </SidebarMenuButton>

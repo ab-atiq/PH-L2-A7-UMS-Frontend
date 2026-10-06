@@ -1,11 +1,11 @@
+import type { ReactNode } from "react";
 import RoleGuard from "@/components/auth/role-guard";
-import DashboardShell from "@/components/dashboard/dashboard-shell";
-import { ReactNode } from "react";
+import RoleDashboardShell from "@/components/dashboard/role-dashboard-shell";
 
 export default function layout({ children }: { children: ReactNode }) {
   return (
-    <RoleGuard roles={["PATIENT"]}>
-      <DashboardShell role="PATIENT">{children}</DashboardShell>
+    <RoleGuard roles={["STUDENT", "FACULTY", "ADMIN"]}>
+      <RoleDashboardShell>{children}</RoleDashboardShell>
     </RoleGuard>
   );
 }

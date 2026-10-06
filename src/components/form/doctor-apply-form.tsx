@@ -143,7 +143,7 @@ export default function DoctorApplyForm() {
             const params = new URLSearchParams({
               email: doctorData.user.email,
             });
-            router.push(`/apply/verify-account?${params.toString()}`);
+            router.push(`/faculty-access/verify-account?${params.toString()}`);
           },
           onError: (err) => {
             toast.add({

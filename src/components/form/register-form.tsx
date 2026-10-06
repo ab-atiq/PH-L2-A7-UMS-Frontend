@@ -1,294 +1,165 @@
 "use client";
 
-import { useForm } from "@tanstack/react-form";
-import { Eye, EyeOff } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
+import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import GoogleLoginComponent from "../modules/google-login/GoogleLogin";
-import { patientRegistrationSchema } from "@/validation";
-import z from "zod";
 import { useRegistration } from "@/hooks";
-import { toast } from "../ui/toast";
-import { Spinner } from "../ui/spinner";
+import { registrationSchema } from "@/validation";
 
 export function RegisterForm() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { mutateAsync: register, isPending } = useRegistration();
+  const [values, setValues] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [formError, setFormError] = useState("");
 
-  type PatientDefaultValues = z.infer<typeof patientRegistrationSchema>;
+  const setValue = (field: keyof typeof values, value: string) =>
+    setValues((current) => ({ ...current, [field]: value }));
 
-  const defaultValues: PatientDefaultValues = {
-    name: "Mir",
-    email: "mir@gmail.com",
-    contactNumber: "01912345678",
-    password: "@User123456",
-    confirmPassword: "@User123456",
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setFormError("");
+    const parsed = registrationSchema.safeParse(values);
+    if (!parsed.success) {
+      setFormError(
+        parsed.error.issues[0]?.message ?? "Check the information entered.",
+      );
+      return;
+    }
+
+    try {
+      const payload = {
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        email: parsed.data.email,
+        password: parsed.data.password,
+        phone: parsed.data.phone,
+      };
+      await register(payload);
+      router.push(
+        `/register/verify-account?email=${encodeURIComponent(payload.email)}`,
+      );
+    } catch (error) {
+      setFormError(getApiErrorMessage(error));
+    }
   };
 
-  const { mutate: registration, isPending: registrationPending } =
-    useRegistration();
-
-  const form = useForm({
-    defaultValues,
-    validators: {
-      onSubmit: patientRegistrationSchema,
-    },
-    onSubmit: async ({ value }) => {
-      const registrationData = {
-        name: value.name,
-        email: value.email,
-        password: value.password,
-        patient: {
-          contactNumber: value.contactNumber,
-        },
-      };
-
-      registration(registrationData, {
-        onSuccess: (res) => {
-          if (!res.success) {
-            toast.add({
-              title: "Server Failure",
-              description: "Something went wrong. Please try again",
-              type: "error",
-            });
-          }
-
-          toast.add({
-            title: "Registration Successful",
-            description: "Please verify your account",
-            type: "success",
-          });
-          const params = new URLSearchParams({ email: registrationData.email });
-          router.push(`/register/verify-account?${params.toString()}`);
-        },
-        onError: (err) => {
-          toast.add({
-            title: "Authorization failure",
-            description:
-              err.message || "Something went wrong. Please try again",
-            type: "error",
-          });
-        },
-      });
-    },
-  });
-
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="text-2xl font-bold tracking-tight">Create an account</h1>
-        <p className="text-sm text-muted-foreground">
-          Enter your details below to create your account
+    <div className="space-y-6">
+      <div>
+        <p className="text-sm font-medium text-primary">Student account</p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          Create your account
+        </h1>
+        <p className="mt-2 text-sm text-muted-foreground">
+          We’ll email you a verification code to finish setting up your account.
         </p>
       </div>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
-        }}
-      >
-        <FieldGroup>
-          <form.Field name="name">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type="text"
-                      placeholder="John Doe"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      autoComplete="name"
-                    />
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-
-          <form.Field name="email">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type="email"
-                      placeholder="m@example.com"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      autoComplete="off"
-                    />
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-
-          <form.Field name="contactNumber">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Phone Number</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type="tel"
-                      placeholder="+880 1712 345678"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      autoComplete="off"
-                    />
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-
-          <form.Field name="password">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="*********"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      className="pr-10"
-                      autoComplete="off"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </button>
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-
-          <form.Field name="confirmPassword">
-            {(field) => {
-              const isInvalid =
-                field.state.meta.isTouched && !field.state.meta.isValid;
-              return (
-                <Field data-invalid={isInvalid}>
-                  <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
-                  <div className="relative">
-                    <Input
-                      id={field.name}
-                      name={field.name}
-                      type={showConfirmPassword ? "text" : "password"}
-                      placeholder="*********"
-                      value={field.state.value}
-                      onBlur={field.handleBlur}
-                      onChange={(e) => field.handleChange(e.target.value)}
-                      aria-invalid={isInvalid}
-                      className="pr-10"
-                      autoComplete="off"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none"
-                      aria-label={
-                        showConfirmPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="size-4" />
-                      ) : (
-                        <Eye className="size-4" />
-                      )}
-                    </button>
-                  </div>
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
-                </Field>
-              );
-            }}
-          </form.Field>
-
-          <Button disabled={registrationPending} type="submit">
-            {registrationPending ? (
-              <>
-                <Spinner /> submitting
-              </>
-            ) : (
-              "Submit"
-            )}
-          </Button>
-        </FieldGroup>
-      </form>
-
-      <FieldSeparator>Or continue with</FieldSeparator>
-
-      <GoogleLoginComponent />
-
-      <div className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
-        <Link
-          href="/login"
-          className="font-medium underline underline-offset-4 hover:text-primary"
+      <form onSubmit={(event) => void onSubmit(event)} className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label
+            htmlFor="register-first-name"
+            className="flex flex-col gap-2 text-sm font-medium"
+          >
+            First name
+            <Input
+              id="register-first-name"
+              required
+              value={values.firstName}
+              onChange={(event) => setValue("firstName", event.target.value)}
+            />
+          </label>
+          <label
+            htmlFor="register-last-name"
+            className="flex flex-col gap-2 text-sm font-medium"
+          >
+            Last name
+            <Input
+              id="register-last-name"
+              required
+              value={values.lastName}
+              onChange={(event) => setValue("lastName", event.target.value)}
+            />
+          </label>
+        </div>
+        <label
+          htmlFor="register-email"
+          className="flex flex-col gap-2 text-sm font-medium"
         >
-          Login
-        </Link>
-      </div>
+          Email address
+          <Input
+            id="register-email"
+            type="email"
+            autoComplete="email"
+            required
+            value={values.email}
+            onChange={(event) => setValue("email", event.target.value)}
+          />
+        </label>
+        <label
+          htmlFor="register-phone"
+          className="flex flex-col gap-2 text-sm font-medium"
+        >
+          Phone number{" "}
+          <span className="font-normal text-muted-foreground">(optional)</span>
+          <Input
+            id="register-phone"
+            type="tel"
+            autoComplete="tel"
+            value={values.phone}
+            onChange={(event) => setValue("phone", event.target.value)}
+          />
+        </label>
+        <label
+          htmlFor="register-password"
+          className="flex flex-col gap-2 text-sm font-medium"
+        >
+          Password
+          <Input
+            id="register-password"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={values.password}
+            onChange={(event) => setValue("password", event.target.value)}
+          />
+        </label>
+        <label
+          htmlFor="register-confirm-password"
+          className="flex flex-col gap-2 text-sm font-medium"
+        >
+          Confirm password
+          <Input
+            id="register-confirm-password"
+            type="password"
+            autoComplete="new-password"
+            required
+            value={values.confirmPassword}
+            onChange={(event) =>
+              setValue("confirmPassword", event.target.value)
+            }
+          />
+        </label>
+        {formError && (
+          <p
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+          >
+            {formError}
+          </p>
+        )}
+        <Button className="h-10 w-full" type="submit" disabled={isPending}>
+          {isPending ? "Creating account…" : "Create student account"}
+        </Button>
+      </form>
     </div>
   );
 }

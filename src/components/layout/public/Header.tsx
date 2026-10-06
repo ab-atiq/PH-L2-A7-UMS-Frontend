@@ -1,32 +1,32 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { getApiErrorMessage } from "@/api";
 import Logo from "@/assets/svg/Logo";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useGetMe, useLogout } from "@/hooks";
-import { UserRole } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
+import type { UserRole } from "@/types";
 
 export default function Header() {
   const routes = [
     { name: "Home", url: "/" },
-    { name: "Doctors", url: "/doctors" },
-    { name: "About us", url: "/about-us" },
+    { name: "Academics", url: "/#academics" },
+    { name: "About", url: "/#about" },
   ];
 
   const dashboardRoute: Record<UserRole, string> = {
-    SUPER_ADMIN: "/admin",
-    ADMIN: "/admin",
-    DOCTOR: "/doctor",
-    PATIENT: "/dashboard",
+    ADMIN: "/dashboard",
+    FACULTY: "/dashboard",
+    STUDENT: "/dashboard",
   };
 
   const { data, isLoading } = useGetMe();
   const { mutate: logout } = useLogout();
   const queryClient = useQueryClient();
 
-  const role: UserRole = !!data?.data && data?.data.role;
+  const role = data?.data?.role;
 
   const handleLogout = () => {
     logout(undefined, {
@@ -38,10 +38,10 @@ export default function Header() {
         });
         queryClient.removeQueries({ queryKey: ["user"] });
       },
-      onError: () => {
+      onError: (error) => {
         toast.add({
           title: "Logout failed",
-          description: "Something Went Wrong",
+          description: getApiErrorMessage(error),
           type: "error",
         });
       },
@@ -49,14 +49,13 @@ export default function Header() {
   };
 
   return (
-    <header className="w-full h-16 border border-b">
-      <div className="flex justify-between items-center h-full max-w-7xl mx-auto">
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <Link href="/" className="flex items-center gap-2 font-semibold">
           <Logo />
-          <span>PH Healthcare</span>
-        </div>
-
-        <nav className="flex gap-5">
+          <span>University Portal</span>
+        </Link>
+        <nav className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           {routes.map((route) => (
             <Link key={route.url} href={route.url}>
               {route.name}
@@ -65,19 +64,28 @@ export default function Header() {
 
           {role && <Link href={dashboardRoute[role]}>Dashboard</Link>}
         </nav>
-        <div>
-          {!isLoading && !data && (
-            <Button
-              variant="outline"
-              render={<Link href="/login">Login</Link>}
-              nativeButton={false}
-            >
-              Login
-            </Button>
+        <div className="flex items-center gap-2">
+          {!isLoading && !data?.data && (
+            <>
+              <Button
+                variant="ghost"
+                render={<Link href="/login" />}
+                nativeButton={false}
+              >
+                Sign in
+              </Button>
+              <Button
+                render={<Link href="/register" />}
+                nativeButton={false}
+                className="hidden sm:inline-flex"
+              >
+                Apply
+              </Button>
+            </>
           )}
-          {!isLoading && data && (
-            <Button onClick={handleLogout} variant="destructive">
-              Logout
+          {!isLoading && data?.data && (
+            <Button onClick={handleLogout} variant="outline">
+              Sign out
             </Button>
           )}
         </div>

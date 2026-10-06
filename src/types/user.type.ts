@@ -1,21 +1,34 @@
-export type UserRole = "SUPER_ADMIN" | "ADMIN" | "DOCTOR" | "PATIENT";
+export type UserRole = "ADMIN" | "FACULTY" | "STUDENT";
 
-export type UserStatus = "ACTIVE" | "BLOCKED" | "DELETED";
+export type UserStatus =
+  | "PENDING_VERIFICATION"
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED";
 
 export interface User {
   id: string;
-  name: string;
   email: string;
-  googleId: null | string;
-  authProvider: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  avatarUrl: string | null;
   emailVerified: boolean;
   role: UserRole;
   status: UserStatus;
-  needPasswordChange: boolean;
-  imageUrl: null | string;
-  imagePublicId: null | string;
-  isDeleted: boolean;
-  deletedAt: null | string;
+  studentProfile?: {
+    id: string;
+    studentId: string;
+    programId: string | null;
+    departmentId: string | null;
+    currentSemesterId: string | null;
+  } | null;
+  facultyProfile?: {
+    id: string;
+    employeeId: string;
+    departmentId: string | null;
+    designation: string | null;
+  } | null;
   createdAt: string;
   updatedAt: string;
 }

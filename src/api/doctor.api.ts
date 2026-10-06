@@ -1,5 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import {
+import type {
   ApiResponse,
   ApproveDoctorPayload,
   Doctor,
@@ -21,17 +21,20 @@ export function applyAsDoctor(payload: DoctorApplicationPayload) {
     formData.append("additionalFiles", file);
   }
 
-  return apiClient("/doctor/apply-as-doctor", {
+  return apiClient<ApiResponse<unknown>>("/doctor/apply-as-doctor", {
     method: "POST",
     body: formData,
   });
 }
 
 export function verifyDoctorAccount(payload: VerifyAccountPayload) {
-  return apiClient("/doctor/apply-as-doctor/verify-email", {
-    method: "POST",
-    body: payload,
-  });
+  return apiClient<ApiResponse<unknown>>(
+    "/doctor/apply-as-doctor/verify-email",
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 }
 
 export function getAllDoctors(params: DoctorParams) {

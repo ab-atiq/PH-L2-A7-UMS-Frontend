@@ -1,6 +1,11 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 import { useRouter, useSearchParams } from "next/navigation";
+import { type FormEvent, useEffect, useState } from "react";
+import { getApiErrorMessage } from "@/api";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -8,165 +13,99 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../ui/card";
-import { Button } from "../ui/button";
-import { InputOTP, InputOTPGroup, InputOTPSlot } from "../ui/input-otp";
-import { Field, FieldDescription, FieldError, FieldLabel } from "../ui/field";
-import { useEffect, useState } from "react";
-import { REGEXP_ONLY_DIGITS } from "input-otp";
-import { useVerifyAccount, useVerifyDoctorAccount } from "@/hooks";
-import { toast } from "../ui/toast";
+} from "@/components/ui/card";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { toast } from "@/components/ui/toast";
+import { useVerifyAccount } from "@/hooks";
 
-const RESEND_COOLDOWN = 120;
-
-export default function VerifyAccountForm({
-  mode = "patient",
-}: {
-  mode: "doctor" | "patient";
-}) {
+export default function VerifyAccountForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
-
+  const queryClient = useQueryClient();
+  const email = searchParams.get("email") ?? "";
   const [otp, setOtp] = useState("");
-  const [isInvalid, setIsInvalid] = useState(false);
-  const [resendTimer, setResendTimer] = useState(RESEND_COOLDOWN);
-
-  const { mutate: verifyPatient } = useVerifyAccount();
-  const { mutate: verifyDoctor } = useVerifyDoctorAccount();
-
-  const verify = mode === "doctor" ? verifyDoctor : verifyPatient;
-
-  const email = searchParams.get("email") || "";
+  const [error, setError] = useState("");
+  const { mutateAsync: verify, isPending } = useVerifyAccount();
 
   useEffect(() => {
-    if (!email) {
-      router.push("/");
-    }
-  }, [email]);
+    if (!email) router.replace("/register");
+  }, [email, router]);
 
-  useEffect(() => {
-    if (resendTimer <= 0) {
-      return;
-    }
-
-    const timer = setInterval(() => {
-      setResendTimer((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, []);
-
-  const handleOTP = () => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     if (otp.length !== 6) {
-      setIsInvalid(true);
+      setError("Enter the six-digit code sent to your email.");
       return;
     }
-
-    const verifyData = {
-      email,
-      otp,
-    };
-
-    verify(verifyData, {
-      onSuccess: (res) => {
-        if (!res.success) {
-          toast.add({
-            title: "Server Failure",
-            description: "Something went wrong. Please try again",
-            type: "error",
-          });
-        }
-
-        if (mode === "doctor") {
-          toast.add({
-            title: "Verification Successful",
-            description:
-              "An admin will approve your account. This may take time. Please check your email in few days",
-            type: "success",
-          });
-          router.push("/");
-
-          return;
-        }
-
-        toast.add({
-          title: "Verification Successful",
-          description: "Welcome onboard",
-          type: "success",
-        });
-        router.push("/");
-      },
-      onError: (err) => {
-        toast.add({
-          title: "Verification failure",
-          description: err.message || "Something went wrong. Please try again",
-          type: "error",
-        });
-      },
-    });
+    setError("");
+    try {
+      await verify({ email, otp });
+      await queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.add({
+        title: "Email verified",
+        description: "Your student account is ready.",
+        type: "success",
+      });
+      router.replace("/dashboard");
+    } catch (verifyError) {
+      setError(getApiErrorMessage(verifyError));
+    }
   };
 
-  if (!email) {
-    return null;
-  }
+  if (!email) return null;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Verify Account</CardTitle>
+        <CardTitle>Verify your email</CardTitle>
         <CardDescription>
-          Please provide the OTP we send you in your email
+          Enter the six-digit verification code sent to <strong>{email}</strong>
+          .
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form
-          id="otp-form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            handleOTP();
-          }}
-        >
-          <Field data-invalid={isInvalid}>
-            <FieldLabel htmlFor="otp">OTP</FieldLabel>
+      <form onSubmit={(event) => void submit(event)}>
+        <CardContent>
+          <Field data-invalid={Boolean(error)}>
+            <FieldLabel htmlFor="otp">Verification code</FieldLabel>
             <InputOTP
               maxLength={6}
+              value={otp}
               onChange={(value) => {
                 setOtp(value);
-                if (isInvalid) {
-                  setIsInvalid(false);
-                }
+                setError("");
               }}
-              value={otp}
-              autoComplete="off"
+              autoComplete="one-time-code"
               name="otp"
               id="otp"
               pattern={REGEXP_ONLY_DIGITS}
             >
               <InputOTPGroup>
-                <InputOTPSlot index={0} />
-                <InputOTPSlot index={1} />
-                <InputOTPSlot index={2} />
-                <InputOTPSlot index={3} />
-                <InputOTPSlot index={4} />
-                <InputOTPSlot index={5} />
+                {[
+                  "otp-slot-1",
+                  "otp-slot-2",
+                  "otp-slot-3",
+                  "otp-slot-4",
+                  "otp-slot-5",
+                  "otp-slot-6",
+                ].map((key, index) => (
+                  <InputOTPSlot key={key} index={index} />
+                ))}
               </InputOTPGroup>
             </InputOTP>
-            {isInvalid && (
-              <FieldError
-                errors={[{ message: "Invalid Code. Please try again" }]}
-              />
-            )}
-            <FieldDescription>Resend in {resendTimer}</FieldDescription>
+            {error && <FieldError errors={[{ message: error }]} />}
           </Field>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button disabled={resendTimer > 0}>Resend</Button>
-        <Button type="submit" form="otp-form">
-          Submit
-        </Button>
-      </CardFooter>
+        </CardContent>
+        <CardFooter className="mt-5">
+          <Button className="w-full" type="submit" disabled={isPending}>
+            {isPending ? "Verifying…" : "Verify account"}
+          </Button>
+        </CardFooter>
+      </form>
     </Card>
   );
 }

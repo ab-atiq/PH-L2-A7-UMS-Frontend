@@ -2,46 +2,26 @@ export default function Logo() {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="40"
-      height="40"
-      viewBox="0 0 40 40"
+      width="36"
+      height="36"
+      viewBox="0 0 36 36"
       fill="none"
-      id="Logo"
+      aria-label="University"
+      role="img"
     >
-      <g id="logomark">
-        <path
-          d="M24 0H16V12.0632C15.9663 14.2434 14.1885 16 12.0005 16H0V24H8.68629C10.808 24 12.8429 23.1571 14.3431 21.6569L21.6569 14.3431C23.1571 12.8429 24 10.808 24 8.68629V0Z"
-          fill="url(#paint0_linear_12062_9373)"
-        />
-        <path
-          d="M16 40H24V27.9368C24.0337 25.7566 25.8115 24 27.9995 24H40V16H31.3137C29.192 16 27.1571 16.8429 25.6569 18.3431L18.3431 25.6569C16.8429 27.1571 16 29.192 16 31.3137V40Z"
-          fill="url(#paint1_linear_12062_9373)"
-        />
-      </g>
-      <defs>
-        <linearGradient
-          id="paint0_linear_12062_9373"
-          x1="20"
-          y1="-0.997096"
-          x2="20"
-          y2="33.7931"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#75D8FC" />
-          <stop offset="1" stopColor="#0072E5" />
-        </linearGradient>
-        <linearGradient
-          id="paint1_linear_12062_9373"
-          x1="20"
-          y1="-0.997096"
-          x2="20"
-          y2="33.7931"
-          gradientUnits="userSpaceOnUse"
-        >
-          <stop stopColor="#75D8FC" />
-          <stop offset="1" stopColor="#0072E5" />
-        </linearGradient>
-      </defs>
+      <rect width="36" height="36" rx="10" fill="#0F766E" />
+      <path d="M8 14.25 18 9l10 5.25L18 19.5 8 14.25Z" fill="#CCFBF1" />
+      <path
+        d="M11 17.2v7.05c4.45 3.2 9.55 3.2 14 0V17.2l-7 3.7-7-3.7Z"
+        fill="#fff"
+      />
+      <path
+        d="M29 14.8v8"
+        stroke="#CCFBF1"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+      <circle cx="29" cy="24.5" r="1.4" fill="#CCFBF1" />
     </svg>
   );
 }

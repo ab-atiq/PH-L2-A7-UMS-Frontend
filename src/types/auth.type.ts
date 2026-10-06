@@ -1,10 +1,9 @@
 export interface RegistrationPayload {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
-  patient: {
-    contactNumber?: string;
-  };
+  phone?: string;
 }
 
 export interface LoginPayload {
