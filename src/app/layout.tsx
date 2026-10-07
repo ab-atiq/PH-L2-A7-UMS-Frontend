@@ -1,9 +1,9 @@
-import { Toaster } from "@/components/ui/toast";
-import { cn } from "@/lib/utils";
-import Providers from "@/providers";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import type { ReactNode } from "react";
+import { Toaster } from "@/components/ui/toast";
+import { cn } from "@/lib/utils";
+import Providers from "@/providers";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -36,12 +36,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         inter.variable,
       )}
     >
-      <Providers>
-        <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+        <Providers>
           {children}
           <Toaster />
-        </body>
-      </Providers>
+        </Providers>
+      </body>
     </html>
   );
 }

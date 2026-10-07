@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ListQuery, type Resource, universityApi } from "@/api";
+import {
+  type CreateRoleApplicationPayload,
+  createRoleApplication,
+  getMyRoleApplication,
+  type ListQuery,
+  type Resource,
+  universityApi,
+} from "@/api";
 
 export function useAdminStats(enabled = true) {
   return useQuery({
@@ -54,5 +61,24 @@ export function useSectionRegistration() {
     mutationFn: universityApi.registerSection,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["university"] }),
+  });
+}
+
+export function useMyRoleApplication(enabled = true) {
+  return useQuery({
+    queryKey: ["role-application", "me"],
+    queryFn: getMyRoleApplication,
+    enabled,
+    retry: false,
+  });
+}
+
+export function useCreateRoleApplication() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: CreateRoleApplicationPayload) =>
+      createRoleApplication(payload),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["role-application"] }),
   });
 }

@@ -1,13 +1,13 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
 import { getApiErrorMessage } from "@/api";
 import Logo from "@/assets/svg/Logo";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useGetMe, useLogout } from "@/hooks";
 import type { UserRole } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
 
 export default function Header() {
   const routes = [
@@ -20,6 +20,7 @@ export default function Header() {
     ADMIN: "/dashboard",
     FACULTY: "/dashboard",
     STUDENT: "/dashboard",
+    USER: "/dashboard",
   };
 
   const { data, isLoading } = useGetMe();

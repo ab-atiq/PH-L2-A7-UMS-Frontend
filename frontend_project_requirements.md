@@ -25,11 +25,13 @@ Design: clean, modern university SaaS dashboard. Desktop-first, fully responsive
 
 ---
 
-## 3. Roles (Exactly 3)
+## 3. Roles
 
-`STUDENT`, `FACULTY`, `ADMIN`
+`USER`, `STUDENT`, `FACULTY`, `ADMIN`
 
 - Navigation and actions render dynamically based on the authenticated user's role.
+- `USER` is a verified account without an academic role; the user dashboard lets
+  the account submit one student or faculty role application and view its status.
 - Unauthorized actions are never shown.
 - **Frontend role hiding is not security** — the backend API remains the source of truth for authorization. All UI gating is a UX convenience only.
 
@@ -68,6 +70,19 @@ Landing page includes: university branding, login/register CTAs, Google login, f
 ## 6. Authenticated Application
 
 Root authenticated route: `/dashboard`. Content adapts entirely by role.
+
+### 6.1 New Account and Role Application
+
+- Email registration and first-time Google sign-in create an active `USER`.
+- The `USER` dashboard offers an application for either `STUDENT` or `FACULTY`.
+- Student applications require a program of interest and a personal statement.
+- Faculty applications require a department, highest qualification, and a
+  personal statement; specialization is optional.
+- Each account can submit one role application. The application is persisted by
+  `POST /api/v1/applications` and status is read from
+  `GET /api/v1/applications/me`.
+- Submission is not role activation. Users remain `USER` until an authorized
+  university process changes their role and creates the academic profile.
 
 ---
 
@@ -238,11 +253,13 @@ use `/workspace/[resource]` and reusable dashboard components.
 src/
   api/
     auth.api.ts
+    application.api.ts
     university.api.ts
   lib/
     apiClient.ts
   hooks/
     auth.hook.ts
+    application hooks in university.hook.ts
     university.hook.ts
 ```
 
@@ -258,6 +275,9 @@ src/
 - Protected route groups + role-based route protection using the existing auth guards
 - API requests send credentialed HTTP-only cookies
 - Current identity endpoint: `GET /api/v1/user/me` (`/api/v1/auth/me` is not mounted)
+- `USER` accounts may read and update their own `/api/v1/user/me` profile.
+- Role applications are submitted and fetched through
+  `/api/v1/applications` and `/api/v1/applications/me`.
 - The backend remains authoritative for authentication and authorization
 
 ---
@@ -341,7 +361,7 @@ Every state below needs a clear message and a meaningful next action:
 ## 19. Hard Constraints
 
 - Mirror backend domain terminology exactly — do not invent different names for entities/states.
-- Do not create additional roles beyond STUDENT / FACULTY / ADMIN.
+- Keep the four backend roles exactly: USER / STUDENT / FACULTY / ADMIN.
 - Do not create fake or optimistic payment success states.
 - Do not bypass or duplicate backend authorization logic.
 - Do not calculate business-critical academic or payment rules (GPA, prerequisites, credit limits, payment status) on the frontend — always defer to backend responses.

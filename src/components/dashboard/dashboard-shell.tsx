@@ -1,12 +1,18 @@
-import { Bell, Search } from "lucide-react";
-import Link from "next/link";
-import type { ReactNode } from "react";
+import { getApiErrorMessage } from "@/api";
+import { Button } from "@/components/ui/button";
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { toast } from "@/components/ui/toast";
+import { useLogout } from "@/hooks";
 import type { UserRole } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { Bell, LogOut, Search } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 export default function DashboardShell({
@@ -16,6 +22,31 @@ export default function DashboardShell({
   children: ReactNode;
   userRole: UserRole;
 }) {
+  const queryClient = useQueryClient();
+  const { mutate: logout } = useLogout();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => {
+        toast.add({
+          title: "Tata",
+          description: "Logged out successfully",
+          type: "success",
+        });
+        queryClient.removeQueries({ queryKey: ["user"] });
+        router.push("/");
+      },
+      onError: (error) => {
+        toast.add({
+          title: "Logout failed",
+          description: getApiErrorMessage(error),
+          type: "error",
+        });
+      },
+    });
+  };
+
   return (
     <SidebarProvider>
       <DashboardSidebar userRole={userRole} />
@@ -27,19 +58,24 @@ export default function DashboardShell({
               <Search className="size-4" />
               University Management
             </span>
-            <span className="hidden rounded-full bg-muted px-2.5 py-1 text-xs font-medium uppercase sm:inline">
+            <span className="hidden rounded-full bg-orange-300 px-2.5 py-1 text-xs font-medium uppercase sm:inline">
               {userRole}
             </span>
             <Link href="/workspace/profile" className="hover:text-foreground">
               Profile
             </Link>
-            <Link
-              href="/workspace/notifications"
-              aria-label="Notifications"
-              className="rounded-md p-1 hover:bg-muted hover:text-foreground"
-            >
-              <Bell className="size-4" />
-            </Link>
+            {userRole !== "USER" && (
+              <Link
+                href="/workspace/notifications"
+                aria-label="Notifications"
+                className="rounded-md p-1 hover:bg-muted hover:text-foreground"
+              >
+                <Bell className="size-4" />
+              </Link>
+            )}
+            <Button onClick={handleLogout} variant="outline">
+              <LogOut className="size-4" />
+            </Button>
           </div>
         </header>
         {children}

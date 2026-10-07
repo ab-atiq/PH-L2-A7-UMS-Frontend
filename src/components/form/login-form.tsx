@@ -1,9 +1,4 @@
 "use client";
-
-import { useQueryClient } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +6,11 @@ import { toast } from "@/components/ui/toast";
 import GoogleLoginComponent from "@/components/university/google-login/GoogleLogin";
 import { useLogin } from "@/hooks";
 import { loginSchema } from "@/validation";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 
 export default function LoginForm() {
   const router = useRouter();
@@ -19,6 +19,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [formError, setFormError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,13 +49,59 @@ export default function LoginForm() {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-medium text-primary">University Portal</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
           Sign in to your account
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
           Access your academic services and university workspace.
         </p>
+      </div>
+      <div>
+        {/* add 4 user tesing login by default button for testing all role */}
+        <div className="flex flex-row gap-2 mb-2">
+          <Button
+            className="h-10 w-1/2"
+            variant="outline"
+            onClick={() => {
+              setEmail("atiqurrahmancse12@gmail.com");
+              setPassword("Passw0rd!123");
+            }}
+          >
+            Test User
+          </Button>
+          <Button
+            className="h-10 w-1/2"
+            variant="outline"
+            onClick={() => {
+              setEmail("admin@university.edu");
+              setPassword("Passw0rd!Admin@123");
+            }}
+          >
+            Test Admin
+          </Button>
+        </div>
+        <div className="flex flex-row gap-2">
+          <Button
+            className="h-10 w-1/2"
+            variant="outline"
+            onClick={() => {
+              setEmail("faculty@university.edu");
+              setPassword("Passw0rd!Faculty@123");
+            }}
+          >
+            Test Faculty
+          </Button>
+          <Button
+            className="h-10 w-1/2"
+            variant="outline"
+            onClick={() => {
+              setEmail("cse1905004brur@gmail.com");
+              setPassword("Passw0rd!123");
+            }}
+          >
+            Test Student
+          </Button>
+        </div>
       </div>
       <form onSubmit={(event) => void onSubmit(event)} className="space-y-4">
         <label
@@ -73,7 +120,7 @@ export default function LoginForm() {
             placeholder="you@university.edu"
           />
         </label>
-        <label
+        {/* <label
           htmlFor="login-password"
           className="flex flex-col gap-2 text-sm font-medium"
         >
@@ -88,6 +135,41 @@ export default function LoginForm() {
             onChange={(event) => setPassword(event.target.value)}
             placeholder="Enter your password"
           />
+          <button
+            type="button"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-pressed={showPassword}
+            onClick={() => setShowPassword((visible) => !visible)}
+            className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+          >
+            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+          </button>
+        </label> */}
+        <label
+          htmlFor="login-password"
+          className="flex flex-col gap-2 text-sm font-medium"
+        >
+          Password
+          <span className="relative">
+            <Input
+              id="login-password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              className="pr-10"
+            />
+            <button
+              type="button"
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              onClick={() => setShowPassword((visible) => !visible)}
+              className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </span>
         </label>
         <div className="flex justify-end">
           <Link

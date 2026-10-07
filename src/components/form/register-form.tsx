@@ -1,13 +1,13 @@
 "use client";
 
+import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegistration } from "@/hooks";
 import { registrationSchema } from "@/validation";
-import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -59,10 +59,11 @@ export function RegisterForm() {
     <div className="space-y-6">
       <div>
         <h1 className="mt-2 text-2xl font-semibold tracking-tight">
-          Create your account
+          Create your university account
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          We'll email you a verification code to finish setting up your account.
+          We'll email you a verification code. After signing in, you can apply
+          for student or faculty access.
         </p>
       </div>
       <form onSubmit={(event) => void onSubmit(event)} className="space-y-4">
@@ -185,7 +186,7 @@ export function RegisterForm() {
           </p>
         )}
         <Button className="h-10 w-full" type="submit" disabled={isPending}>
-          {isPending ? "Creating account…" : "Create student account"}
+          {isPending ? "Creating account…" : "Create account"}
         </Button>
       </form>
     </div>

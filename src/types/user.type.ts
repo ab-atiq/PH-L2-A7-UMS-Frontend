@@ -1,4 +1,20 @@
-export type UserRole = "ADMIN" | "FACULTY" | "STUDENT";
+export type UserRole = "ADMIN" | "FACULTY" | "STUDENT" | "USER";
+export type ApplicationRole = Extract<UserRole, "STUDENT" | "FACULTY">;
+export type ApplicationStatus = "PENDING";
+
+export interface RoleApplication {
+  id: string;
+  userId: string;
+  requestedRole: ApplicationRole;
+  status: ApplicationStatus;
+  programInterest: string | null;
+  departmentInterest: string | null;
+  highestQualification: string | null;
+  specialization: string | null;
+  statement: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type UserStatus =
   | "PENDING_VERIFICATION"

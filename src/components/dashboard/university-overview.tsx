@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
+import UserApplicationDashboard from "./user-application-dashboard";
 
 type RecordValue = Record<string, unknown>;
 
@@ -97,6 +98,10 @@ export default function UniversityOverview() {
   const courses = getRows(courseData?.data);
   const exams = getRows(examData?.data);
   const invoices = getRows(invoiceData?.data);
+  if (role === "USER" && profile?.data) {
+    return <UserApplicationDashboard user={profile.data} />;
+  }
+
   const fullName = [profile?.data?.firstName, profile?.data?.lastName]
     .filter(Boolean)
     .join(" ");
@@ -105,7 +110,9 @@ export default function UniversityOverview() {
       ? "Administration"
       : role === "FACULTY"
         ? "Faculty"
-        : "Student";
+        : role === "STUDENT"
+          ? "Student"
+          : "University";
   const quickLinks =
     role === "ADMIN"
       ? [
@@ -121,15 +128,17 @@ export default function UniversityOverview() {
             { href: "/workspace/exams", label: "Manage exams" },
             { href: "/workspace/results", label: "Enter results" },
           ]
-        : [
-            {
-              href: "/workspace/course-registration",
-              label: "Register for courses",
-            },
-            { href: "/workspace/enrollments", label: "View my courses" },
-            { href: "/workspace/transcript", label: "View transcript" },
-            { href: "/workspace/invoices", label: "View fees and payments" },
-          ];
+        : role === "STUDENT"
+          ? [
+              {
+                href: "/workspace/course-registration",
+                label: "Register for courses",
+              },
+              { href: "/workspace/enrollments", label: "View my courses" },
+              { href: "/workspace/transcript", label: "View transcript" },
+              { href: "/workspace/invoices", label: "View fees and payments" },
+            ]
+          : [{ href: "/dashboard", label: "Choose an academic role" }];
 
   return (
     <main className="min-h-[calc(100vh-4rem)] bg-muted/30 px-4 py-8 sm:px-6 lg:px-8">

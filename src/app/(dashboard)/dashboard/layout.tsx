@@ -4,7 +4,7 @@ import RoleDashboardShell from "@/components/dashboard/role-dashboard-shell";
 
 export default function layout({ children }: { children: ReactNode }) {
   return (
-    <RoleGuard roles={["STUDENT", "FACULTY", "ADMIN"]}>
+    <RoleGuard roles={["USER", "STUDENT", "FACULTY", "ADMIN"]}>
       <RoleDashboardShell>{children}</RoleDashboardShell>
     </RoleGuard>
   );

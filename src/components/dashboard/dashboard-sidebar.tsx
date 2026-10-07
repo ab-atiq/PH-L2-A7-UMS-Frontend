@@ -15,7 +15,12 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { adminRoutes, facultyRoutes, studentRoutes } from "@/routes";
+import {
+  adminRoutes,
+  facultyRoutes,
+  studentRoutes,
+  userRoutes,
+} from "@/routes";
 import type { UserRole } from "@/types";
 import type { SidebarItems } from "@/types/sidebar.type";
 
@@ -23,6 +28,7 @@ const sidebarRoutes: Partial<Record<UserRole, SidebarItems>> = {
   ADMIN: adminRoutes,
   FACULTY: facultyRoutes,
   STUDENT: studentRoutes,
+  USER: userRoutes,
 };
 
 export function DashboardSidebar({ userRole }: { userRole: UserRole }) {
