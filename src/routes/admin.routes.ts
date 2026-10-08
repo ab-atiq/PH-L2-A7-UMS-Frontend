@@ -1,74 +1,76 @@
+import { getRoleDashboardPath, getRoleWorkspacePath } from "@/lib/role-routes";
+
 export const adminRoutes = [
   {
     title: "Workspace",
     items: [
       {
         title: "Dashboard",
-        url: "/dashboard",
+        url: getRoleDashboardPath("ADMIN"),
       },
       {
         title: "My profile",
-        url: "/workspace/profile",
+        url: getRoleWorkspacePath("ADMIN", "profile"),
       },
       {
         title: "Notifications",
-        url: "/workspace/notifications",
+        url: getRoleWorkspacePath("ADMIN", "notifications"),
       },
       {
         title: "Users",
-        url: "/workspace/users",
+        url: getRoleWorkspacePath("ADMIN", "users"),
       },
       {
         title: "Students",
-        url: "/workspace/students",
+        url: getRoleWorkspacePath("ADMIN", "students"),
       },
       {
         title: "Faculty",
-        url: "/workspace/faculty",
+        url: getRoleWorkspacePath("ADMIN", "faculty"),
       },
       {
         title: "Departments",
-        url: "/workspace/departments",
+        url: getRoleWorkspacePath("ADMIN", "departments"),
       },
       {
         title: "Programs",
-        url: "/workspace/programs",
+        url: getRoleWorkspacePath("ADMIN", "programs"),
       },
       {
         title: "Courses",
-        url: "/workspace/courses",
+        url: getRoleWorkspacePath("ADMIN", "courses"),
       },
       {
         title: "Semesters",
-        url: "/workspace/semesters",
+        url: getRoleWorkspacePath("ADMIN", "semesters"),
       },
       {
         title: "Sections",
-        url: "/workspace/sections",
+        url: getRoleWorkspacePath("ADMIN", "sections"),
       },
       {
         title: "Course prerequisites",
-        url: "/workspace/course-prerequisites",
+        url: getRoleWorkspacePath("ADMIN", "course-prerequisites"),
       },
       {
         title: "Enrollments",
-        url: "/workspace/enrollments",
+        url: getRoleWorkspacePath("ADMIN", "enrollments"),
       },
       {
         title: "Invoices",
-        url: "/workspace/invoices",
+        url: getRoleWorkspacePath("ADMIN", "invoices"),
       },
       {
         title: "Payments",
-        url: "/workspace/payments",
+        url: getRoleWorkspacePath("ADMIN", "payments"),
       },
       {
         title: "Audit logs",
-        url: "/workspace/audit-logs",
+        url: getRoleWorkspacePath("ADMIN", "audit-logs"),
       },
       {
         title: "Settings",
-        url: "/workspace/settings",
+        url: getRoleWorkspacePath("ADMIN", "settings"),
       },
     ],
   },

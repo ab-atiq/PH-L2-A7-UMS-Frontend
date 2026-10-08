@@ -1,42 +1,44 @@
+import { getRoleDashboardPath, getRoleWorkspacePath } from "@/lib/role-routes";
+
 export const facultyRoutes = [
   {
     title: "Teaching",
     items: [
       {
         title: "Dashboard",
-        url: "/dashboard",
+        url: getRoleDashboardPath("FACULTY"),
       },
       {
         title: "My profile",
-        url: "/workspace/profile",
+        url: getRoleWorkspacePath("FACULTY", "profile"),
       },
       {
         title: "My courses",
-        url: "/workspace/sections",
+        url: getRoleWorkspacePath("FACULTY", "sections"),
       },
       {
         title: "Schedule",
-        url: "/workspace/sections",
+        url: getRoleWorkspacePath("FACULTY", "sections"),
       },
       {
         title: "Attendance",
-        url: "/workspace/attendance",
+        url: getRoleWorkspacePath("FACULTY", "attendance"),
       },
       {
         title: "Exams",
-        url: "/workspace/exams",
+        url: getRoleWorkspacePath("FACULTY", "exams"),
       },
       {
         title: "Results",
-        url: "/workspace/results",
+        url: getRoleWorkspacePath("FACULTY", "results"),
       },
       {
         title: "Notifications",
-        url: "/workspace/notifications",
+        url: getRoleWorkspacePath("FACULTY", "notifications"),
       },
       {
         title: "Settings",
-        url: "/workspace/settings",
+        url: getRoleWorkspacePath("FACULTY", "settings"),
       },
     ],
   },

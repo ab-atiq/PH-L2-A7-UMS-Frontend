@@ -7,7 +7,7 @@ import Logo from "@/assets/svg/Logo";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/toast";
 import { useGetMe, useLogout } from "@/hooks";
-import type { UserRole } from "@/types";
+import { getRoleDashboardPath } from "@/lib/role-routes";
 
 export default function Header() {
   const routes = [
@@ -15,13 +15,6 @@ export default function Header() {
     { name: "Academics", url: "/#academics" },
     { name: "About", url: "/#about" },
   ];
-
-  const dashboardRoute: Record<UserRole, string> = {
-    ADMIN: "/dashboard",
-    FACULTY: "/dashboard",
-    STUDENT: "/dashboard",
-    USER: "/dashboard",
-  };
 
   const { data, isLoading } = useGetMe();
   const { mutate: logout } = useLogout();
@@ -63,7 +56,7 @@ export default function Header() {
             </Link>
           ))}
 
-          {role && <Link href={dashboardRoute[role]}>Dashboard</Link>}
+          {role && <Link href={getRoleDashboardPath(role)}>Dashboard</Link>}
         </nav>
         <div className="flex items-center gap-2">
           {!isLoading && !data?.data && (

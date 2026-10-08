@@ -57,7 +57,7 @@ export function DashboardSidebar({ userRole }: { userRole: UserRole }) {
                       render={<Link href={item.url} />}
                       isActive={
                         pathname === item.url ||
-                        (item.url !== "/dashboard" &&
+                        (item.url.includes("/workspace/") &&
                           pathname.startsWith(`${item.url}/`))
                       }
                     >

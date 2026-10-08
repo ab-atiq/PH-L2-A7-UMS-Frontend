@@ -20,6 +20,7 @@ import {
   useUniversityDelete,
   useUniversityList,
 } from "@/hooks";
+import { getRoleDashboardPath } from "@/lib/role-routes";
 import type { UserRole } from "@/types";
 
 type FieldSpec = {
@@ -472,7 +473,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
       >
         <a
           className="text-sm font-medium text-primary hover:underline"
-          href="/dashboard"
+          href={role ? getRoleDashboardPath(role) : "/dashboard"}
         >
           Return to dashboard
         </a>

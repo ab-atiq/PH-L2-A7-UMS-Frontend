@@ -1,54 +1,56 @@
+import { getRoleDashboardPath, getRoleWorkspacePath } from "@/lib/role-routes";
+
 export const studentRoutes = [
   {
     title: "Academics",
     items: [
       {
         title: "Dashboard",
-        url: "/dashboard",
+        url: getRoleDashboardPath("STUDENT"),
       },
       {
         title: "My profile",
-        url: "/workspace/profile",
+        url: getRoleWorkspacePath("STUDENT", "profile"),
       },
       {
         title: "Course catalog",
-        url: "/workspace/courses",
+        url: getRoleWorkspacePath("STUDENT", "courses"),
       },
       {
         title: "Course registration",
-        url: "/workspace/course-registration",
+        url: getRoleWorkspacePath("STUDENT", "course-registration"),
       },
       {
         title: "My courses",
-        url: "/workspace/enrollments",
+        url: getRoleWorkspacePath("STUDENT", "enrollments"),
       },
       {
         title: "Attendance",
-        url: "/workspace/attendance",
+        url: getRoleWorkspacePath("STUDENT", "attendance"),
       },
       {
         title: "Exams",
-        url: "/workspace/exams",
+        url: getRoleWorkspacePath("STUDENT", "exams"),
       },
       {
         title: "Results",
-        url: "/workspace/results",
+        url: getRoleWorkspacePath("STUDENT", "results"),
       },
       {
         title: "Transcript",
-        url: "/workspace/transcript",
+        url: getRoleWorkspacePath("STUDENT", "transcript"),
       },
       {
         title: "Fees & payments",
-        url: "/workspace/invoices",
+        url: getRoleWorkspacePath("STUDENT", "invoices"),
       },
       {
         title: "Notifications",
-        url: "/workspace/notifications",
+        url: getRoleWorkspacePath("STUDENT", "notifications"),
       },
       {
         title: "Settings",
-        url: "/workspace/settings",
+        url: getRoleWorkspacePath("STUDENT", "settings"),
       },
     ],
   },

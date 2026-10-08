@@ -1,5 +1,5 @@
-import UniversityOverview from "@/components/dashboard/university-overview";
+import RoleRouteRedirect from "@/components/auth/role-route-redirect";
 
 export default function DashboardPage() {
-  return <UniversityOverview />;
+  return <RoleRouteRedirect />;
 }

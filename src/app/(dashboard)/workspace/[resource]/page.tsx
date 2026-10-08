@@ -1,9 +1,9 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import WorkspacePage from "@/components/dashboard/workspace-page";
+import RoleRouteRedirect from "@/components/auth/role-route-redirect";
 
 export default function WorkspaceRoute() {
   const params = useParams<{ resource: string }>();
-  return <WorkspacePage resource={params.resource} />;
+  return <RoleRouteRedirect resource={params.resource} />;
 }

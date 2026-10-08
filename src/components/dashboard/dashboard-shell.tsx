@@ -1,3 +1,10 @@
+"use client";
+
+import { useQueryClient } from "@tanstack/react-query";
+import { Bell, LogOut, Search } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,12 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
 import { useLogout } from "@/hooks";
+import { getRoleWorkspacePath } from "@/lib/role-routes";
 import type { UserRole } from "@/types";
-import { useQueryClient } from "@tanstack/react-query";
-import { Bell, LogOut, Search } from "lucide-react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
 export default function DashboardShell({
@@ -61,12 +64,15 @@ export default function DashboardShell({
             <span className="hidden rounded-full bg-orange-300 px-2.5 py-1 text-xs font-medium uppercase sm:inline">
               {userRole}
             </span>
-            <Link href="/workspace/profile" className="hover:text-foreground">
+            <Link
+              href={getRoleWorkspacePath(userRole, "profile")}
+              className="hover:text-foreground"
+            >
               Profile
             </Link>
             {userRole !== "USER" && (
               <Link
-                href="/workspace/notifications"
+                href={getRoleWorkspacePath(userRole, "notifications")}
                 aria-label="Notifications"
                 className="rounded-md p-1 hover:bg-muted hover:text-foreground"
               >

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
+import { getRoleWorkspacePath } from "@/lib/role-routes";
 import UserApplicationDashboard from "./user-application-dashboard";
 
 type RecordValue = Record<string, unknown>;
@@ -116,27 +117,60 @@ export default function UniversityOverview() {
   const quickLinks =
     role === "ADMIN"
       ? [
-          { href: "/workspace/departments", label: "Manage departments" },
-          { href: "/workspace/courses", label: "Manage courses" },
-          { href: "/workspace/sections", label: "Manage sections" },
-          { href: "/workspace/audit-logs", label: "Review audit logs" },
+          {
+            href: getRoleWorkspacePath(role, "departments"),
+            label: "Manage departments",
+          },
+          {
+            href: getRoleWorkspacePath(role, "courses"),
+            label: "Manage courses",
+          },
+          {
+            href: getRoleWorkspacePath(role, "sections"),
+            label: "Manage sections",
+          },
+          {
+            href: getRoleWorkspacePath(role, "audit-logs"),
+            label: "Review audit logs",
+          },
         ]
       : role === "FACULTY"
         ? [
-            { href: "/workspace/sections", label: "View my courses" },
-            { href: "/workspace/attendance", label: "Record attendance" },
-            { href: "/workspace/exams", label: "Manage exams" },
-            { href: "/workspace/results", label: "Enter results" },
+            {
+              href: getRoleWorkspacePath(role, "sections"),
+              label: "View my courses",
+            },
+            {
+              href: getRoleWorkspacePath(role, "attendance"),
+              label: "Record attendance",
+            },
+            {
+              href: getRoleWorkspacePath(role, "exams"),
+              label: "Manage exams",
+            },
+            {
+              href: getRoleWorkspacePath(role, "results"),
+              label: "Enter results",
+            },
           ]
         : role === "STUDENT"
           ? [
               {
-                href: "/workspace/course-registration",
+                href: getRoleWorkspacePath(role, "course-registration"),
                 label: "Register for courses",
               },
-              { href: "/workspace/enrollments", label: "View my courses" },
-              { href: "/workspace/transcript", label: "View transcript" },
-              { href: "/workspace/invoices", label: "View fees and payments" },
+              {
+                href: getRoleWorkspacePath(role, "enrollments"),
+                label: "View my courses",
+              },
+              {
+                href: getRoleWorkspacePath(role, "transcript"),
+                label: "View transcript",
+              },
+              {
+                href: getRoleWorkspacePath(role, "invoices"),
+                label: "View fees and payments",
+              },
             ]
           : [{ href: "/dashboard", label: "Choose an academic role" }];
 
@@ -265,7 +299,11 @@ export default function UniversityOverview() {
               always loaded from the university system.
             </p>
             <Link
-              href="/workspace/notifications"
+              href={
+                role
+                  ? getRoleWorkspacePath(role, "notifications")
+                  : "/dashboard"
+              }
               className="mt-5 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
             >
               View notifications <ArrowUpRight className="size-4" />
