@@ -1,17 +1,20 @@
 "use client";
 
-import Link from "next/link";
-import { type FormEvent, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from "@/components/ui/toast";
 import { useRequestPasswordReset } from "@/hooks";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
 
 export default function ForgotPasswordPage() {
   const { mutateAsync: requestReset, isPending } = useRequestPasswordReset();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const router = useRouter();
 
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -23,6 +26,12 @@ export default function ForgotPasswordPage() {
         response.message ??
           "If the account exists, a reset code has been sent.",
       );
+      toast.add({
+        title: "Reset code sent",
+        description: "Check your email for the reset code.",
+        type: "success",
+      });
+      router.push(`/reset-password?email=${encodeURIComponent(email)}`);
     } catch (requestError) {
       setError(getApiErrorMessage(requestError));
     }

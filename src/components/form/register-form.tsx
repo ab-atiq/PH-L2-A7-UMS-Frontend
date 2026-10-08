@@ -1,13 +1,14 @@
 "use client";
 
-import { Eye, EyeOff } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useState } from "react";
 import { getApiErrorMessage } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRegistration } from "@/hooks";
 import { registrationSchema } from "@/validation";
+import { Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, useState } from "react";
+import GoogleLoginComponent from "../university/google-login/GoogleLogin";
 
 export function RegisterForm() {
   const router = useRouter();
@@ -189,6 +190,13 @@ export function RegisterForm() {
           {isPending ? "Creating account…" : "Create account"}
         </Button>
       </form>
+      <div className="relative text-center text-xs uppercase text-muted-foreground">
+        <span className="bg-background px-2">or continue with</span>
+        <div className="absolute inset-x-0 top-1/2 -z-10 border-t" />
+      </div>
+      <div>
+        <GoogleLoginComponent />
+      </div>
     </div>
   );
 }

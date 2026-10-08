@@ -195,7 +195,9 @@ export default function LoginForm() {
         <span className="bg-background px-2">or continue with</span>
         <div className="absolute inset-x-0 top-1/2 -z-10 border-t" />
       </div>
-      <GoogleLoginComponent />
+      <div>
+        <GoogleLoginComponent />
+      </div>
       <p className="text-center text-sm text-muted-foreground">
         New student?{" "}
         <Link
