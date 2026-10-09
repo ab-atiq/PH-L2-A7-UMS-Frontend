@@ -1,5 +1,9 @@
 import apiClient from "@/lib/apiClient";
-import type { User } from "@/types";
+import type {
+  AvailableFacultyUser,
+  FacultyProfile,
+  User,
+} from "@/types";
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -16,6 +20,18 @@ export interface ApiEnvelope<T> {
 
 export type Resource = Record<string, unknown>;
 export type ListQuery = Record<string, string | number | undefined>;
+
+export type FacultyProfilePayload = {
+  employeeId?: string;
+  designation?: string;
+  specialization?: string | null;
+  departmentId?: string | null;
+  userId?: string;
+  joinDate?: string | null;
+  firstName?: string;
+  lastName?: string;
+  phone?: string | null;
+};
 
 function queryString(query?: ListQuery) {
   if (!query) return "";
@@ -40,6 +56,49 @@ export const universityApi = {
     });
   },
   adminStats: () => apiClient<ApiEnvelope<Resource>>("/admin/dashboard/stats"),
+  listFaculty: (search?: string) =>
+    apiClient<ApiEnvelope<FacultyProfile[]>>("/faculty", {
+      params: search ? { search } : undefined,
+    }),
+  filterFaculty: (filters: ListQuery) =>
+    apiClient<ApiEnvelope<FacultyProfile[]>>("/faculty/filter", {
+      params: filters,
+    }),
+  availableFacultyUsers: () =>
+    apiClient<ApiEnvelope<AvailableFacultyUser[]>>("/faculty/available-users"),
+  facultyByEmployeeId: (employeeId: string) =>
+    apiClient<ApiEnvelope<FacultyProfile>>(
+      `/faculty/${encodeURIComponent(employeeId)}`,
+    ),
+  createFaculty: (payload: FacultyProfilePayload) =>
+    apiClient<ApiEnvelope<FacultyProfile>>("/faculty", {
+      method: "POST",
+      body: payload,
+    }),
+  updateFaculty: (employeeId: string, payload: FacultyProfilePayload) =>
+    apiClient<ApiEnvelope<FacultyProfile>>(
+      `/faculty/${encodeURIComponent(employeeId)}`,
+      { method: "PATCH", body: payload },
+    ),
+  deleteFaculty: (employeeId: string) =>
+    apiClient<ApiEnvelope<FacultyProfile>>(
+      `/faculty/${encodeURIComponent(employeeId)}`,
+      { method: "DELETE" },
+    ),
+  myStudentProfile: () =>
+    apiClient<ApiEnvelope<Resource>>("/students/me"),
+  createMyStudentProfile: (payload: Resource) =>
+    apiClient<ApiEnvelope<Resource>>("/students/me", {
+      method: "POST",
+      body: payload,
+    }),
+  updateMyStudentProfile: (payload: Resource) =>
+    apiClient<ApiEnvelope<Resource>>("/students/me", {
+      method: "PATCH",
+      body: payload,
+    }),
+  deleteMyStudentProfile: () =>
+    apiClient<ApiEnvelope<Resource>>("/students/me", { method: "DELETE" }),
 
   list: (resource: string, query?: ListQuery) =>
     apiClient<ApiEnvelope<unknown>>(`/${resource}${queryString(query)}`),

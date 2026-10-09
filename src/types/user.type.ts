@@ -59,3 +59,29 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface FacultyProfile {
+  id: string;
+  employeeId: string;
+  designation: string | null;
+  specialization: string | null;
+  departmentId: string | null;
+  userId: string;
+  joinDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  user: Pick<
+    User,
+    "id" | "email" | "firstName" | "lastName" | "phone" | "avatarUrl" | "status"
+  >;
+  department: { id: string; name: string; code: string; status: string } | null;
+}
+
+export interface AvailableFacultyUser {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  phone: string | null;
+  status: UserStatus;
+}

@@ -17,6 +17,10 @@ export const studentRoutes = [
         url: getRoleProfilePath("STUDENT"),
       },
       {
+        title: "Student record",
+        url: "/student/student-profile",
+      },
+      {
         title: "Course catalog",
         url: getRoleWorkspacePath("STUDENT", "courses"),
       },

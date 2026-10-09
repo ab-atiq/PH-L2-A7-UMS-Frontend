@@ -4,7 +4,11 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AuthLoading from "@/components/auth/auth-loading";
 import WorkspacePage from "@/components/dashboard/workspace-page";
-import { getRoleDashboardPath, getRoleProfilePath } from "@/lib/role-routes";
+import {
+  getRoleDashboardPath,
+  getRoleProfilePath,
+  getRoleWorkspacePath,
+} from "@/lib/role-routes";
 import type { UserRole } from "@/types";
 
 const roleResources: Record<UserRole, readonly string[]> = {
@@ -63,6 +67,8 @@ export default function RoleWorkspacePage({
   useEffect(() => {
     if (resource === "profile") {
       router.replace(getRoleProfilePath(userRole));
+    } else if (userRole === "ADMIN" && resource === "faculty") {
+      router.replace(getRoleWorkspacePath(userRole, resource));
     } else if (!isAllowed) {
       router.replace(getRoleDashboardPath(userRole));
     }
