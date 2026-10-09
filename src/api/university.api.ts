@@ -1,4 +1,5 @@
 import apiClient from "@/lib/apiClient";
+import type { User } from "@/types";
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -30,6 +31,14 @@ export const universityApi = {
   me: () => apiClient<ApiEnvelope<Resource>>("/user/me"),
   updateProfile: (body: Resource) =>
     apiClient<ApiEnvelope<Resource>>("/user/me", { method: "PATCH", body }),
+  uploadProfileImage: (file: File) => {
+    const body = new FormData();
+    body.append("profileImage", file);
+    return apiClient<ApiEnvelope<User>>("/user/profile-image", {
+      method: "PATCH",
+      body,
+    });
+  },
   adminStats: () => apiClient<ApiEnvelope<Resource>>("/admin/dashboard/stats"),
 
   list: (resource: string, query?: ListQuery) =>

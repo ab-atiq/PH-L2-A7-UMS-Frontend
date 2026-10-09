@@ -22,6 +22,13 @@ export type UserStatus =
   | "INACTIVE"
   | "SUSPENDED";
 
+interface ProfileRelation {
+  id?: string;
+  name?: string;
+  title?: string;
+  code?: string;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -38,12 +45,16 @@ export interface User {
     programId: string | null;
     departmentId: string | null;
     currentSemesterId: string | null;
+    program?: ProfileRelation | null;
+    department?: ProfileRelation | null;
+    currentSemester?: ProfileRelation | null;
   } | null;
   facultyProfile?: {
     id: string;
     employeeId: string;
     departmentId: string | null;
     designation: string | null;
+    department?: ProfileRelation | null;
   } | null;
   createdAt: string;
   updatedAt: string;

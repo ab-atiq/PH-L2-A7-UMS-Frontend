@@ -11,6 +11,10 @@ export function getRoleDashboardPath(role: UserRole) {
   return `/${roleSegments[role]}/dashboard`;
 }
 
+export function getRoleProfilePath(role: UserRole) {
+  return `/${roleSegments[role]}/profile`;
+}
+
 export function getRoleWorkspacePath(role: UserRole, resource: string) {
   return `/${roleSegments[role]}/workspace/${encodeURIComponent(resource)}`;
 }

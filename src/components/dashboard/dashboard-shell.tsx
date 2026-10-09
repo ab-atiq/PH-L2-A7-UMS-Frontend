@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/sidebar";
 import { toast } from "@/components/ui/toast";
 import { useLogout } from "@/hooks";
-import { getRoleWorkspacePath } from "@/lib/role-routes";
+import { getRoleProfilePath, getRoleWorkspacePath } from "@/lib/role-routes";
 import type { UserRole } from "@/types";
 import { DashboardSidebar } from "./dashboard-sidebar";
 
@@ -65,7 +65,7 @@ export default function DashboardShell({
               {userRole}
             </span>
             <Link
-              href={getRoleWorkspacePath(userRole, "profile")}
+              href={getRoleProfilePath(userRole)}
               className="hover:text-foreground"
             >
               Profile

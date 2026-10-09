@@ -1,4 +1,8 @@
-import { getRoleDashboardPath, getRoleWorkspacePath } from "@/lib/role-routes";
+import {
+  getRoleDashboardPath,
+  getRoleProfilePath,
+  getRoleWorkspacePath,
+} from "@/lib/role-routes";
 
 export const adminRoutes = [
   {
@@ -10,7 +14,7 @@ export const adminRoutes = [
       },
       {
         title: "My profile",
-        url: getRoleWorkspacePath("ADMIN", "profile"),
+        url: getRoleProfilePath("ADMIN"),
       },
       {
         title: "Notifications",

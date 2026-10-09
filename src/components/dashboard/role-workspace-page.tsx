@@ -4,7 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AuthLoading from "@/components/auth/auth-loading";
 import WorkspacePage from "@/components/dashboard/workspace-page";
-import { getRoleDashboardPath } from "@/lib/role-routes";
+import { getRoleDashboardPath, getRoleProfilePath } from "@/lib/role-routes";
 import type { UserRole } from "@/types";
 
 const roleResources: Record<UserRole, readonly string[]> = {
@@ -61,9 +61,15 @@ export default function RoleWorkspacePage({
   const isAllowed = roleResources[userRole].includes(resource);
 
   useEffect(() => {
-    if (!isAllowed) router.replace(getRoleDashboardPath(userRole));
-  }, [isAllowed, router, userRole]);
+    if (resource === "profile") {
+      router.replace(getRoleProfilePath(userRole));
+    } else if (!isAllowed) {
+      router.replace(getRoleDashboardPath(userRole));
+    }
+  }, [isAllowed, resource, router, userRole]);
 
-  if (!isAllowed) return <AuthLoading label="Opening your dashboard..." />;
+  if (resource === "profile" || !isAllowed) {
+    return <AuthLoading label="Opening your profile..." />;
+  }
   return <WorkspacePage resource={resource} />;
 }

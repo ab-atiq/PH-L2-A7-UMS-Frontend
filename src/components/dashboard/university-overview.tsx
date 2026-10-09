@@ -1,5 +1,7 @@
 "use client";
 
+import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
+import { getRoleWorkspacePath } from "@/lib/role-routes";
 import {
   ArrowUpRight,
   BookOpen,
@@ -9,8 +11,6 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
-import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
-import { getRoleWorkspacePath } from "@/lib/role-routes";
 import UserApplicationDashboard from "./user-application-dashboard";
 
 type RecordValue = Record<string, unknown>;
@@ -106,6 +106,7 @@ export default function UniversityOverview() {
   const fullName = [profile?.data?.firstName, profile?.data?.lastName]
     .filter(Boolean)
     .join(" ");
+
   const roleTitle =
     role === "ADMIN"
       ? "Administration"
@@ -114,6 +115,7 @@ export default function UniversityOverview() {
         : role === "STUDENT"
           ? "Student"
           : "University";
+
   const quickLinks =
     role === "ADMIN"
       ? [
@@ -286,7 +288,7 @@ export default function UniversityOverview() {
               ))}
             </div>
           </div>
-          <div className="rounded-xl border bg-card p-5 shadow-sm sm:p-6">
+          {/* <div className="rounded-xl border bg-card p-5 shadow-sm sm:p-6">
             <div className="flex items-center gap-2">
               <span className="rounded-lg bg-primary/10 p-2 text-primary">
                 <GraduationCap className="size-5" />
@@ -308,7 +310,7 @@ export default function UniversityOverview() {
             >
               View notifications <ArrowUpRight className="size-4" />
             </Link>
-          </div>
+          </div> */}
         </section>
       </div>
     </main>
