@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function AdminApprovalsPage() {
-  redirect("/admin/workspace/faculty");
+  redirect("/admin/role-applications");
 }

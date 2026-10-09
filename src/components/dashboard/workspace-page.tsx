@@ -6,6 +6,7 @@ import {
   ArrowRight,
   BookOpen,
   CircleAlert,
+  Eye,
   LoaderCircle,
   Plus,
   Search,
@@ -386,6 +387,9 @@ export default function WorkspacePage({ resource }: { resource: string }) {
   const isAdmin = role === "ADMIN";
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [selectedDetailId, setSelectedDetailId] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editItem, setEditItem] = useState<Resource | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
@@ -400,8 +404,33 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     "STRIPE" | "BKASH" | "SSLCOMMERZ"
   >("STRIPE");
   const [isSaving, setIsSaving] = useState(false);
+  const isAcademicAdminResource =
+    isAdmin &&
+    ["departments", "programs", "courses", "semesters"].includes(resource);
+  const departmentOptionsQuery = useUniversityList(
+    "departments",
+    { limit: 100 },
+    isAdmin && ["programs", "courses"].includes(resource),
+  );
+  const departmentOptions = rowsFrom(departmentOptionsQuery.data?.data);
   const listQuery =
-    resource === "invoices" && isStudent ? { limit: 100 } : { page, limit: 10 };
+    resource === "invoices" && isStudent
+      ? { limit: 100 }
+      : {
+          page,
+          limit: 10,
+          ...(isAcademicAdminResource && search.trim()
+            ? { search: search.trim() }
+            : {}),
+          ...(isAcademicAdminResource && statusFilter
+            ? { status: statusFilter }
+            : {}),
+          ...(isAcademicAdminResource &&
+          ["programs", "courses"].includes(resource) &&
+          departmentFilter
+            ? { departmentId: departmentFilter }
+            : {}),
+        };
   const query = useUniversityList(
     endpoint ?? "",
     listQuery,
@@ -421,6 +450,15 @@ export default function WorkspacePage({ resource }: { resource: string }) {
       universityApi.get("course-prerequisites", prerequisiteCourse),
     enabled:
       resource === "course-prerequisites" && prerequisiteCourse.length > 0,
+  });
+  const detailsQuery = useQuery({
+    queryKey: ["university", endpoint, "details", selectedDetailId],
+    queryFn: () => {
+      if (!endpoint)
+        throw new Error("This resource does not have detail records.");
+      return universityApi.get(endpoint, selectedDetailId);
+    },
+    enabled: isAcademicAdminResource && Boolean(selectedDetailId),
   });
   const registration = useUniversityRegistrationMutation();
   const rows = useMemo(
@@ -443,6 +481,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     ],
   );
   const displayedRows = useMemo(() => {
+    if (isAcademicAdminResource) return rows;
     const normalizedSearch = search.trim().toLowerCase();
     if (!normalizedSearch) return rows;
     return rows.filter((item) =>
@@ -454,7 +493,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
             .includes(normalizedSearch),
       ),
     );
-  }, [rows, search]);
+  }, [isAcademicAdminResource, rows, search]);
   const columns = useMemo(() => {
     const firstRow = displayedRows[0];
     return firstRow
@@ -499,6 +538,20 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     ["departments", "programs", "courses", "semesters", "sections"].includes(
       resource,
     );
+  const statusOptions =
+    resource === "departments" || resource === "programs"
+      ? ["ACTIVE", "INACTIVE"]
+      : resource === "courses"
+        ? ["DRAFT", "PUBLISHED", "ARCHIVED"]
+        : resource === "semesters"
+          ? [
+              "UPCOMING",
+              "REGISTRATION_OPEN",
+              "CURRENT",
+              "COMPLETED",
+              "ARCHIVED",
+            ]
+          : [];
   const hasRowActions =
     resource === "course-registration" ||
     resource === "enrollments" ||
@@ -860,12 +913,79 @@ export default function WorkspacePage({ resource }: { resource: string }) {
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
               <input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search this page"
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  if (isAcademicAdminResource) setPage(1);
+                }}
+                placeholder={
+                  isAcademicAdminResource
+                    ? "Search all records"
+                    : "Search this page"
+                }
                 className="h-9 w-full rounded-lg border bg-background pl-9 pr-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
             </label>
           </div>
+          {isAcademicAdminResource && (
+            <div className="grid gap-3 border-b p-4 sm:grid-cols-2">
+              {statusOptions.length > 0 && (
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+                  Filter by status
+                  <select
+                    value={statusFilter}
+                    onChange={(event) => {
+                      setStatusFilter(event.target.value);
+                      setPage(1);
+                    }}
+                    className="h-9 rounded-lg border bg-background px-3 text-sm text-foreground"
+                  >
+                    <option value="">All statuses</option>
+                    {statusOptions.map((status) => (
+                      <option key={status} value={status}>
+                        {status.replaceAll("_", " ")}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              {["programs", "courses"].includes(resource) && (
+                <label className="flex flex-col gap-1.5 text-xs font-medium text-muted-foreground">
+                  Filter by department
+                  <select
+                    value={departmentFilter}
+                    onChange={(event) => {
+                      setDepartmentFilter(event.target.value);
+                      setPage(1);
+                    }}
+                    className="h-9 rounded-lg border bg-background px-3 text-sm text-foreground"
+                  >
+                    <option value="">All departments</option>
+                    {departmentOptions.map((department) => (
+                      <option
+                        key={String(department.id)}
+                        value={String(department.id)}
+                      >
+                        {formatCell(department.name)} (
+                        {formatCell(department.code)})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("");
+                  setDepartmentFilter("");
+                  setPage(1);
+                }}
+                className="self-end text-left text-sm font-medium text-primary hover:underline"
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
 
           {isPending ? (
             <div className="flex min-h-52 items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -962,8 +1082,16 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                                     Edit profile
                                   </button>
                                 )}
-                                {canDelete && isAdmin && id && (
+                                {isAcademicAdminResource && canDelete && id && (
                                   <>
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedDetailId(id)}
+                                      className="inline-flex items-center gap-1 rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
+                                    >
+                                      <Eye className="size-3.5" />
+                                      View details
+                                    </button>
                                     <button
                                       type="button"
                                       onClick={() => openEditForm(item)}
@@ -1170,7 +1298,9 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                   className="flex flex-col gap-1.5 text-sm font-medium"
                 >
                   {field.label}
-                  {field.kind === "select" ? (
+                  {field.kind === "select" ||
+                  (field.name === "departmentId" &&
+                    ["programs", "courses"].includes(resource)) ? (
                     <select
                       required={field.required}
                       id={`workspace-field-${field.name}`}
@@ -1184,11 +1314,22 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                       className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">Select a value</option>
-                      {field.options?.map((option) => (
-                        <option key={option} value={option}>
-                          {option}
-                        </option>
-                      ))}
+                      {field.name === "departmentId" &&
+                      ["programs", "courses"].includes(resource)
+                        ? departmentOptions.map((department) => (
+                            <option
+                              key={String(department.id)}
+                              value={String(department.id)}
+                            >
+                              {formatCell(department.name)} (
+                              {formatCell(department.code)})
+                            </option>
+                          ))
+                        : field.options?.map((option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          ))}
                     </select>
                   ) : (
                     <input
@@ -1226,6 +1367,55 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                 </button>
               </div>
             </form>
+          </section>
+        </div>
+      )}
+
+      {selectedDetailId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${config.title} details`}
+            className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-xl border bg-background p-6 shadow-xl"
+          >
+            <div className="mb-5 flex items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold">{config.title} details</h2>
+              <button
+                type="button"
+                onClick={() => setSelectedDetailId("")}
+                className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+                aria-label="Close details"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            {detailsQuery.isPending ? (
+              <div className="flex justify-center p-8">
+                <LoaderCircle className="size-5 animate-spin" />
+              </div>
+            ) : detailsQuery.isError ? (
+              <p className="text-sm text-destructive">
+                Could not load details: {getApiErrorMessage(detailsQuery.error)}
+              </p>
+            ) : isRecord(detailsQuery.data?.data) ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {Object.entries(detailsQuery.data.data)
+                  .filter(([key]) => !hiddenFields.has(key))
+                  .map(([key, value]) => (
+                    <div key={key} className="rounded-lg border p-3">
+                      <p className="text-xs capitalize text-muted-foreground">
+                        {key
+                          .replace(/[A-Z]/g, (letter) => ` ${letter}`)
+                          .replace(/^./, (letter) => letter.toUpperCase())}
+                      </p>
+                      <p className="mt-1 break-words text-sm font-medium">
+                        {formatCell(value)}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            ) : null}
           </section>
         </div>
       )}

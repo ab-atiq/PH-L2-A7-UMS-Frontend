@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import Logo from "@/assets/svg/Logo";
 import {
   Sidebar,
@@ -23,6 +21,8 @@ import {
 } from "@/routes";
 import type { UserRole } from "@/types";
 import type { SidebarItems } from "@/types/sidebar.type";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const sidebarRoutes: Partial<Record<UserRole, SidebarItems>> = {
   ADMIN: adminRoutes,
@@ -39,9 +39,16 @@ export function DashboardSidebar({ userRole }: { userRole: UserRole }) {
     <Sidebar>
       <SidebarHeader>
         <Link href="/">
-          <div className="flex items-center gap-2">
-            <Logo />
-            <span>University Portal</span>
+          <div className="flex items-center gap-3">
+            <div>
+              <Logo />
+            </div>
+            <div>
+              <p className="font-semibold">University Portal</p>
+              <p className="hidden rounded bg-orange-300 px-2.5 py-1 text-xs font-small uppercase sm:inline">
+                {userRole}
+              </p>
+            </div>
           </div>
         </Link>
       </SidebarHeader>

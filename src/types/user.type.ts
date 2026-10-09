@@ -1,6 +1,6 @@
 export type UserRole = "ADMIN" | "FACULTY" | "STUDENT" | "USER";
 export type ApplicationRole = Extract<UserRole, "STUDENT" | "FACULTY">;
-export type ApplicationStatus = "PENDING";
+export type ApplicationStatus = "PENDING" | "APPROVED" | "REJECTED";
 
 export interface RoleApplication {
   id: string;

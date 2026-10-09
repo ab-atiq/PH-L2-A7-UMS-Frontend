@@ -16,6 +16,7 @@ export function getRoleProfilePath(role: UserRole) {
 }
 
 export function getRoleWorkspacePath(role: UserRole, resource: string) {
-  if (role === "ADMIN" && resource === "faculty") return "/admin/faculty";
+  if (role === "ADMIN" && ["faculty", "users", "students"].includes(resource))
+    return `/admin/${resource}`;
   return `/${roleSegments[role]}/workspace/${encodeURIComponent(resource)}`;
 }

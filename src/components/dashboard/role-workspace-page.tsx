@@ -67,14 +67,22 @@ export default function RoleWorkspacePage({
   useEffect(() => {
     if (resource === "profile") {
       router.replace(getRoleProfilePath(userRole));
-    } else if (userRole === "ADMIN" && resource === "faculty") {
+    } else if (
+      userRole === "ADMIN" &&
+      ["faculty", "users", "students"].includes(resource)
+    ) {
       router.replace(getRoleWorkspacePath(userRole, resource));
     } else if (!isAllowed) {
       router.replace(getRoleDashboardPath(userRole));
     }
   }, [isAllowed, resource, router, userRole]);
 
-  if (resource === "profile" || !isAllowed) {
+  if (
+    resource === "profile" ||
+    !isAllowed ||
+    (userRole === "ADMIN" &&
+      ["faculty", "users", "students"].includes(resource))
+  ) {
     return <AuthLoading label="Opening your profile..." />;
   }
   return <WorkspacePage resource={resource} />;

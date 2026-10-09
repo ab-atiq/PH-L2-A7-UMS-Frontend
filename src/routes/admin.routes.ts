@@ -33,6 +33,10 @@ export const adminRoutes = [
         url: getRoleWorkspacePath("ADMIN", "faculty"),
       },
       {
+        title: "Role applications",
+        url: "/admin/role-applications",
+      },
+      {
         title: "Departments",
         url: getRoleWorkspacePath("ADMIN", "departments"),
       },

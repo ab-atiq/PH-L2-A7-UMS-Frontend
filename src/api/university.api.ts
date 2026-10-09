@@ -1,9 +1,5 @@
 import apiClient from "@/lib/apiClient";
-import type {
-  AvailableFacultyUser,
-  FacultyProfile,
-  User,
-} from "@/types";
+import type { AvailableFacultyUser, FacultyProfile, User } from "@/types";
 
 export interface ApiEnvelope<T> {
   success: boolean;
@@ -32,6 +28,12 @@ export type FacultyProfilePayload = {
   lastName?: string;
   phone?: string | null;
 };
+
+export type AdminUserStatus =
+  | "ACTIVE"
+  | "INACTIVE"
+  | "SUSPENDED"
+  | "PENDING_VERIFICATION";
 
 function queryString(query?: ListQuery) {
   if (!query) return "";
@@ -85,8 +87,7 @@ export const universityApi = {
       `/faculty/${encodeURIComponent(employeeId)}`,
       { method: "DELETE" },
     ),
-  myStudentProfile: () =>
-    apiClient<ApiEnvelope<Resource>>("/students/me"),
+  myStudentProfile: () => apiClient<ApiEnvelope<Resource>>("/students/me"),
   createMyStudentProfile: (payload: Resource) =>
     apiClient<ApiEnvelope<Resource>>("/students/me", {
       method: "POST",
@@ -99,6 +100,30 @@ export const universityApi = {
     }),
   deleteMyStudentProfile: () =>
     apiClient<ApiEnvelope<Resource>>("/students/me", { method: "DELETE" }),
+  updateAdminUser: (id: string, body: Resource) =>
+    apiClient<ApiEnvelope<Resource>>(`/user/${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      body,
+    }),
+  updateAdminUserStatus: (id: string, status: AdminUserStatus) =>
+    apiClient<ApiEnvelope<Resource>>(`/user/${encodeURIComponent(id)}/status`, {
+      method: "PATCH",
+      body: { status },
+    }),
+  deleteAdminUser: (id: string) =>
+    apiClient<ApiEnvelope<Resource>>(`/user/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+    }),
+  updateAdminStudent: (studentId: string, body: Resource) =>
+    apiClient<ApiEnvelope<Resource>>(
+      `/students/${encodeURIComponent(studentId)}`,
+      { method: "PATCH", body },
+    ),
+  deleteAdminStudent: (studentId: string) =>
+    apiClient<ApiEnvelope<Resource>>(
+      `/students/${encodeURIComponent(studentId)}`,
+      { method: "DELETE" },
+    ),
 
   list: (resource: string, query?: ListQuery) =>
     apiClient<ApiEnvelope<unknown>>(`/${resource}${queryString(query)}`),
