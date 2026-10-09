@@ -2,374 +2,391 @@
 
 ## 1. Overview
 
-A production-quality **Next.js frontend** for the University Management System. The frontend is a pure consumer of the backend REST API under `/api/v1` — it must **never** implement business logic locally. It should feel like a real university ERP/SaaS product, not a generic CRUD dashboard.
+A production-quality **Next.js frontend** for the University Management System. The frontend is a pure consumer of the backend REST API under `/api/v1` — it must **never** implement academic or financial business logic locally. It should feel like a state-of-the-art university ERP/SaaS platform, not a generic CRUD dashboard.
+
+### Core Architectural Alignment (Program Curriculum)
+
+The application mirrors the backend's **fixed program curriculum model**:
+
+- Every degree **Program** has a fixed sequence of **ProgramSemester** slots driven by degree type (`BSC` = 8, `MSC` = 4, `PHD` = 6).
+- Each semester slot has pre-configured **SemesterCourse** offerings with a single assigned faculty teacher (no multiple sections).
+- Progression is strictly **semester-gated**: a student can only enroll in Semester $N$ once Semester $N-1$ has `status = COMPLETED`.
+- Enrolling in a semester (`POST /api/v1/semester-enrollments`) automatically enrolls the student into all courses for that semester (`CourseEnrollment`).
+- Fees are split into a one-time **Admission Fee** (`InvoiceType.ADMISSION`) and a flat recurring **Semester Tuition Fee** (`InvoiceType.SEMESTER`).
 
 ---
 
 ## 2. Mandatory Technology Stack
 
-| Concern | Technology |
-|---|---|
-| Framework | Next.js (latest stable), App Router |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| Components | shadcn/ui |
-| Forms | TanStack Form + Zod (use the existing project dependencies) |
-| Server State | TanStack Query |
-| HTTP Client | ofetch |
-| Icons | Lucide React |
-| Charts | Do not fabricate charts; use visualizations only when the backend supplies series data |
-| Notifications | Existing Base UI toast components |
+| Concern           | Technology                          | Notes                                                      |
+| ----------------- | ----------------------------------- | ---------------------------------------------------------- |
+| **Framework**     | Next.js (latest stable), App Router | Server & Client Components                                 |
+| **Language**      | TypeScript                          | Strict type safety, shared domain interfaces               |
+| **Styling**       | Tailwind CSS                        | Consistent design tokens, dark/light harmonious palette    |
+| **Components**    | shadcn/ui                           | Radix primitives, highly accessible                        |
+| **Forms**         | TanStack Form + Zod                 | Field-level validation mapped to backend errors            |
+| **Server State**  | TanStack Query (v5)                 | Cache, query keys, mutations, optimistic UI where safe     |
+| **HTTP Client**   | ofetch                              | Standardized request wrapper matching `/api/v1` envelope   |
+| **Icons**         | Lucide React                        | Consistent semantic iconography                            |
+| **Notifications** | Base UI / Sonner Toast              | Toast feedback for API outcomes                            |
+| **Charts**        | Recharts / Tremor                   | Render metrics only when backend provides real series data |
 
-Design: clean, modern university SaaS dashboard. Desktop-first, fully responsive.
+Design tone: clean, modern, high-density academic ERP SaaS dashboard. Desktop-first, fully responsive.
 
 ---
 
-## 3. Roles
+## 3. Roles & Permissions
 
 `USER`, `STUDENT`, `FACULTY`, `ADMIN`
 
-- Navigation and actions render dynamically based on the authenticated user's role.
-- `USER` is a verified account without an academic role; the user dashboard lets
-  the account submit one student or faculty role application and view its status.
-- Unauthorized actions are never shown.
-- **Frontend role hiding is not security** — the backend API remains the source of truth for authorization. All UI gating is a UX convenience only.
+- Navigation, sidebar items, and action buttons render dynamically based on the authenticated user's active role.
+- `USER` represents a newly registered/verified account awaiting academic role profile setup (or application approval).
+- Unauthorized actions are hidden from the UI to improve UX.
+- **Frontend role gating is UX convenience only** — the backend API remains the authoritative source of truth for authorization.
 
 ---
 
-## 4. Global UX Principles
+## 4. Global UX & Visual Principles
 
-Build with consistent design tokens across the app:
-
-- Clean dashboard layout, responsive sidebar, top navigation, breadcrumbs
-- Search, filters, pagination on all list views
-- Tables, cards, empty states, loading skeletons, error states
-- Confirmation dialogs, toast notifications, inline form validation
-- Modal/drawer patterns where appropriate
-- Status badges, responsive mobile navigation
-- Professional academic color palette — avoid excessive gradients
-- Highly readable typography
+- **Layout Structure**: Collapsible responsive sidebar, sticky topbar with breadcrumbs, notification bell, and user profile avatar menu.
+- **Standard Views**: Search bar, multi-attribute filter dropdowns, sort headers, and server-side pagination controls on all data lists.
+- **Feedback Loops**: Loading skeletons, empty states with clear CTAs, error boundaries with retry buttons, confirmation dialogs for destructive actions.
+- **Status Badges**: Standard color-coded badges for all domain statuses (`ACTIVE`, `PENDING`, `COMPLETED`, `IN_PROGRESS`, `DROPPED`, `PAID`, `FAILED`, `PUBLISHED`, `DRAFT`).
+- **Typography & Color**: Curated academic palette (slate/indigo/neutral), accessible contrast ratios, and clear typographic hierarchy.
 
 ---
 
-## 5. Public Pages
+## 5. Public & Authentication Pages
 
 ```
-/                       Landing page
-/login
-/register
-/forgot-password
-/reset-password
-/auth/google/callback
+/                       Landing page (university branding, metrics, CTAs)
+/login                  Multi-role login (Student, Faculty, Admin)
+/register               Candidate self-registration
+/verify-email           Email OTP verification
+/forgot-password        Request password reset OTP
+/reset-password         Submit new password with OTP
+/auth/google/callback   OAuth redirect handler
 ```
-
-Landing page includes: university branding, login/register CTAs, Google login, feature overview, academic statistics, contact/footer.
 
 ---
 
-## 6. Authenticated Application
+## 6. Authenticated Shell & Role Dashboard Entry
 
-Root authenticated route: `/dashboard`. Content adapts entirely by role.
+Root authenticated entry: `/dashboard`. Content, statistics, and quick actions adapt dynamically according to the authenticated role:
 
-### 6.1 New Account and Role Application
+### 6.1 New Account State (`USER`)
 
-- Email registration and first-time Google sign-in create an active `USER`.
-- The `USER` dashboard offers an application for either `STUDENT` or `FACULTY`.
-- Student applications require a program of interest and a personal statement.
-- Faculty applications require a department, highest qualification, and a
-  personal statement; specialization is optional.
-- Each account can submit one role application. The application is persisted by
-  `POST /api/v1/applications` and status is read from
-  `GET /api/v1/applications/me`.
-- Submission is not role activation. Users remain `USER` until an authorized
-  university process changes their role and creates the academic profile.
+- For verified accounts without an attached student or faculty profile.
+- Displays onboarding card: program selection and student profile submission or faculty affiliation status.
 
 ---
 
-## 7. Student Navigation
+## 7. Student Navigation & Page Flows
 
 ```
-Dashboard · My Profile · Course Catalog · Course Registration · My Courses
-Class Schedule · Attendance · Exams · Results · Transcript
-Fees & Payments · Notifications · Settings
+Dashboard · My Curriculum · Semester Enrollment · My Courses · Class Schedule
+Attendance · Exams · Results · Official Transcript · Fees & Payments · Notifications
 ```
 
-### 7.1 Student Page Flows
+### 7.1 Student Flows
 
-**A — Dashboard** (`/dashboard`)
-Current semester, registered courses, total credits, current GPA, attendance %, upcoming exams, outstanding fees, recent notifications.
-Quick actions: Register Course · View Schedule · View Results · Pay Fees.
+#### A — Student Dashboard (`/dashboard`)
 
-**B — Course Registration** (`/course-registration`)
-Current semester course cards/table: code, name, credit, prerequisites, available seats, faculty, schedule, status.
-- `View Course` → `/courses/:id`
-- `Register` → confirmation modal → enrollment confirmation on success
-- Before registering, clearly show: ✓ Prerequisite satisfied · ✓ Credit limit available · ✓ Seat available · ✓ Registration period active
-- On failure, surface the **exact backend error message**.
+- **Key Metrics**: Current Program & Semester (e.g., "B.Sc. in CSE — Semester 2 of 8"), Cumulative GPA (CGPA), Total Credits Earned, Attendance %, Outstanding Fees.
+- **Quick Actions**: "Enroll in Semester", "View Transcript", "Pay Tuition Fee", "View Published Results".
+- **Recent Feeds**: Latest exam schedules, published results, fee due notices.
 
-**C — My Courses** (`/my-courses`)
-Tabs: Current · Completed · Dropped. Per-course: code, title, credits, faculty, schedule, attendance, result.
+#### B — My Curriculum (`/curriculum`)
 
-**D — Attendance** (`/attendance`)
-Overall + course-wise attendance (present/absent/percentage), charted.
+- View the entire degree roadmap: displays all numbered semesters (1 to 8/4/6) and the assigned courses for each semester slot.
+- Visual status indicators per semester:
+  - ✅ `COMPLETED` (with achieved Semester GPA)
+  - 🔄 `IN_PROGRESS` (Current active semester)
+  - 🔒 `LOCKED` (Upcoming semesters, locked until prior semester completes)
 
-**E — Exams** (`/exams`)
-Tabs: Upcoming · Completed. Per-exam: course, exam type, date, time, total marks, status.
+#### C — Semester Enrollment (`/semester-enrollment`)
 
-**F — Results** (`/results`)
-Semester results table: course, credits, marks, grade, grade point. Summary: semester GPA, cumulative GPA, completed credits.
+- Active enrollment action center:
+  - If Semester 1: requires Admission Fee (`type: ADMISSION`) to be `PAID`. Shows warning banner with direct "Pay Admission Fee" button if unpaid.
+  - If Semester $N > 1$: verifies Semester $N-1$ is `COMPLETED`. Shows locking indicator if previous semester results are pending.
+  - Clicking **"Enroll in Semester"** opens confirmation modal showing all semester courses that will be registered automatically.
+  - On success, displays confirmation toast and auto-redirects to **My Courses**.
 
-**G — Transcript** (`/transcript`)
-Grouped by semester: course, credits, grade, grade point, plus semester GPA and cumulative GPA. Includes Download/Print Transcript.
+#### D — My Courses (`/my-courses`)
 
-**H — Fees** (`/fees`)
-Outstanding, paid, and history views. Invoice: number, description, amount, due date, status, Pay button.
-Payment flow: Invoice → Pay → Payment gateway → Success/Failure → return to payment result page.
-**Never mark a payment successful from the frontend** — always wait for backend verification.
+- Lists courses for the active semester with teacher name, credits, and status (`ENROLLED` or `DROPPED`).
+- Actions:
+  - **"Course Details"** → `/courses/:id`
+  - **"Drop Course"** → Triggers confirmation dialog explaining academic implications (`DELETE /api/v1/course-enrollments/:id`). Dropped courses display a `DROPPED` badge.
+
+#### E — Attendance (`/attendance`)
+
+- Read-only attendance dashboard.
+- Filter by enrolled course: shows attendance percentage bar, total classes, count of Present / Late / Absent / Excused sessions, and class date history.
+
+#### F — Exams (`/exams`)
+
+- Filter by current semester courses.
+- Tabs: **Upcoming Exams** (exam type, scheduled date, total marks, weightage) and **Completed Exams**.
+
+#### G — Results (`/results`)
+
+- Displays **published results only** (draft marks are never exposed to students).
+- Detailed grade breakdown per exam and overall course grade (`Grade`), grade point (`gradePoint`), and credits.
+
+#### H — Official Transcript (`/transcript`)
+
+- Comprehensive academic history grouped by `ProgramSemester`.
+- Displays course codes, titles, credits, letter grades, semester GPAs, total credits earned, and overall Cumulative GPA (CGPA).
+- Action: **"Print / Download Transcript"** (styled print view).
+
+#### I — Fees & Invoices (`/fees` or `/invoices`)
+
+- Tabs: **Pending Invoices** · **Paid History**.
+- Displays invoice number, type badge (`ADMISSION` vs `SEMESTER`), description, amount (৳), due date, and payment status.
+- **Payment Flow**:
+  - Click **"Pay Now"** → Select gateway (Stripe, bKash, SSLCommerz).
+  - Calls `POST /api/v1/payments/initiate` → receives gateway redirect URL or modal.
+  - Redirects to provider checkout → on return, displays payment status result page.
+  - **Hard constraint**: The frontend _never_ marks an invoice paid locally; it polls or waits for backend confirmation.
 
 ---
 
-## 8. Faculty Navigation
+## 8. Faculty Navigation & Page Flows
 
 ```
-Dashboard · My Profile · My Courses · Students · Attendance
-Exams · Results · Schedule · Notifications · Settings
+Dashboard · Assigned Courses · Class Attendance · Exams & Tests · Grade Entry · Schedule
 ```
 
-### 8.1 Faculty Page Flows
+### 8.1 Faculty Flows
 
-**A — Dashboard**
-Assigned courses, total students, today's classes, upcoming exams, pending results.
+#### A — Faculty Dashboard (`/dashboard`)
 
-**B — My Courses** (`/faculty/courses` → `/faculty/courses/:sectionId`)
-Course cards; detail page shows course, semester, schedule, room, student count, with actions: Attendance · Students · Exams · Results.
+- Metrics: Assigned Semester Courses, Total Enrolled Students, Today's Classes, Pending Marks to Submit.
+- Quick links to take today's attendance and grade recent exams.
 
-**C — Attendance** (`/faculty/courses/:sectionId/attendance`)
-Select date → student table (ID, name, status) → mark Present/Absent → Save. Duplicate attendance prevented via backend validation, surfaced clearly in UI.
+#### B — Assigned Courses (`/faculty/courses` → `/faculty/courses/:semesterCourseId`)
 
-**D — Exams** (`/faculty/exams`)
-Create Exam form: course, exam type, date, time, total marks. After creation → exam details → Enter Marks.
+- Lists courses assigned to the faculty member (`GET /api/v1/faculty/my-courses`).
+- Detail view shows Program, Semester, enrolled student roster, course syllabus, and links to: **Take Attendance**, **Manage Exams**, **Enter Marks**.
 
-**E — Results** (`/faculty/results`)
-Select exam → student table (ID, marks, grade, grade point) → enter marks with validation `0 <= marks <= totalMarks` → confirmation step before submit/publish.
+#### C — Attendance Marking (`/faculty/courses/:semesterCourseId/attendance`)
+
+- Class date selector (defaults to today).
+- Table of enrolled students with quick toggles: **Present**, **Late**, **Absent**, **Excused** (with "Mark All Present" convenience button).
+- Optional remarks field.
+- Prevents duplicate submission for the same date with clear UI feedback.
+
+#### D — Exam Management (`/faculty/exams`)
+
+- Create Exam Form: selects assigned course, `examType` (Quiz, Midterm, Final, Assignment, Project), date, total marks, weightage.
+- Exam list with status: `DRAFT`, `PUBLISHED`, `COMPLETED`.
+
+#### E — Results & Marks Entry (`/faculty/results`)
+
+- Selects exam → loads student roster.
+- Real-time mark input with client-side boundary validation: $0 \le \text{marksObtained} \le \text{totalMarks}$.
+- Auto-displays calculated letter grade (`A`, `A+`, `B`, etc.) and grade point.
+- Saves marks as `DRAFT` or submits to Admin for publication.
 
 ---
 
-## 9. Admin Navigation
+## 9. Admin Navigation & Page Flows
 
 ```
-Dashboard · Users · Students · Faculty · Departments · Programs
-Courses · Prerequisites · Semesters · Sections · Enrollments
-Invoices · Payments · Reports · Audit Logs · Notifications · Settings
+Dashboard · Users · Students · Faculty · Departments · Programs · Courses
+Curriculum Builder · Semester Progressions · Invoices · Payments · Audit Logs · Settings
 ```
 
-### 9.1 Admin Page Flows
+### 9.1 Admin Flows
 
-**A — Dashboard**
-Analytics: total students, total faculty, departments, programs, active courses, current semester, total revenue, pending payments.
-Charts: student growth, enrollment statistics, revenue, course distribution.
+#### A — Admin Dashboard (`/admin/dashboard`)
 
-**B — User Management** (`/admin/users`)
-Table: name, email, role, status, created, actions (View, Change status). Never expose passwords.
+- University-wide statistics: total active students, faculty count, departments, programs, semester enrollments, total revenue, pending invoices.
+- Filterable revenue and enrollment distribution charts.
 
-**C — Departments** (`/admin/departments`)
-Full CRUD. List: name, code, programs, courses, status.
+#### B — User Directory & Moderation (`/admin/users`)
 
-**D — Programs** (`/admin/programs`)
-Full CRUD. Fields: name, code, department, duration, total credits, status.
+- Complete user table with search, role filter (`STUDENT`, `FACULTY`, `ADMIN`), status filter (`ACTIVE`, `SUSPENDED`, `PENDING_VERIFICATION`).
+- Actions: View profile details, **Suspend / Activate Account** modal (`PATCH /api/v1/admin/users/:id/status`).
 
-**E — Courses** (`/admin/courses`)
-Full CRUD. Fields: code, title, description, credit, department, status. Detail view includes prerequisites.
+#### C — Student Management (`/admin/students`)
 
-**F — Semesters** (`/admin/semesters`)
-Create form: name, start date, end date, registration start, registration end, status. Only one semester is CURRENT per backend business rules (frontend reflects, never enforces, this).
+- Student directory by Student ID, name, department, program, batch year.
+- "Create Student Profile" modal linking verified `USER` accounts with their academic degree program.
 
-**G — Sections** (`/admin/sections`)
-Create form: course, semester, section name, capacity, schedule, room → then Assign Faculty.
+#### D — Faculty Management (`/admin/faculty`)
 
-**H — Invoices** (`/admin/invoices`)
-Create form: student, description, amount, due date. Track status: Pending · Paid · Cancelled.
+- Faculty directory with search (`/faculty?search=`) and filter by designation/department (`/faculty/filter`).
+- "Create Faculty Member" modal: links `FACULTY` user with employee ID, designation, and department.
 
-**I — Payments** (`/admin/payments`)
-Table: transaction ID, student, invoice, amount, gateway, status, date. Filter: Success · Pending · Failed · Cancelled.
+#### E — Academic Departments (`/admin/departments`)
 
-**J — Audit Logs** (`/admin/audit-logs`)
-Table: actor, action, entity, entity ID, timestamp. Supports search, filter, pagination.
+- Full CRUD: Create, View, Edit, Soft-Delete academic departments (`CSE`, `EEE`, `BBA`).
+
+#### F — Degree Programs (`/admin/programs`)
+
+- Program table: Degree Type (`BSC`, `MSC`, `PHD`), Duration, Total Semesters, Total Credits, Admission Fee, Semester Tuition Fee.
+- Creating a program automatically creates its sequence of `ProgramSemester` slots.
+- "View Curriculum" drawer linking directly to semester curriculum slots.
+
+#### G — Course Catalog (`/admin/courses`)
+
+- Global course catalog CRUD (`courseCode`, `title`, `credits`, `department`). Searchable and filterable.
+
+#### H — Curriculum Builder (`/admin/curriculum`)
+
+- **Interactive Visual Curriculum Builder**:
+  - Select Program → displays all numbered semester slots (Semester 1 to 8/4/6).
+  - Under each semester slot: shows placed courses and assigned teacher.
+  - Action **"Add Course to Semester"**: select catalog course and assign faculty teacher (`POST /api/v1/program-semesters/:id/courses`).
+  - Action **"Reassign Teacher"**: update faculty assignment on existing semester course.
+  - Action **"Remove Course"**: remove course from semester slot.
+
+#### I — Semester Progressions & Grade Publication (`/admin/progressions`)
+
+- Review student semester enrollments.
+- Review submitted exam marks and execute **"Publish Results"** (`POST /api/v1/exams/:id/publish-results`).
+- Execute **"Mark Semester Completed"** (`POST /api/v1/semester-enrollments/:id/complete`): triggers semester GPA calculation and unlocks the next semester for eligible students.
+
+#### J — Invoices & Finance (`/admin/invoices`)
+
+- Manage both `ADMISSION` and `SEMESTER` invoices.
+- Filter by status (`PENDING`, `PAID`, `OVERDUE`, `CANCELLED`) and type.
+- Form to manually create special invoices or inspect payment attempts.
+
+#### K — Payment Transactions (`/admin/payments`)
+
+- Live gateway payment transaction ledger: transaction ID, invoice reference, student, amount, gateway (Stripe/bKash/SSLCommerz), status (`SUCCESS`, `PENDING`, `FAILED`).
+
+#### L — System Audit Logs (`/admin/audit-logs`)
+
+- Filterable and searchable audit trail: Actor, Action type (`ASSIGN_TEACHER`, `ENROLL`, `DROP_ENROLLMENT`, `PUBLISH_RESULT`, etc.), Entity, Entity ID, timestamp.
 
 ---
 
-## 10. Routing Structure
+## 10. Clean Architecture & Next.js Folder Structure
 
-Keep the existing project layout under `src/`; do not reorganize it into new
-`app/(student)`, `app/(faculty)`, or `app/(admin)` route groups. Route groups
-remain organizational and do not add URL segments.
+Preserves the project's existing structure under `src/` without introducing breaking URL changes:
 
 ```
 src/
-  app/
-    (public)/
-      (marketing)/
-        faculty-directory/
-      (authentication)/
-        faculty-access/
-    (dashboard)/
-      dashboard/
-        enrollments/
-      faculty/
-        schedules/
-      admin/
-        faculty-approvals/
-      workspace/[resource]/
-  api/
-  assets/
-  components/
-    auth/
-    dashboard/
-    form/
-    layout/public/
-    university/
-      enrollments/
-      faculty-approvals/
-      faculty-directory/
-      teaching-schedules/
-    ui/
-  hooks/
-  lib/
-  providers/
-  routes/
-  types/
-  utils/
-  validation/
-```
-
-Role-specific navigation stays in `src/routes/`; authenticated resource pages
-use `/workspace/[resource]` and reusable dashboard components.
-
----
-
-## 11. API Integration Layer
-
-```
-src/
-  api/
-    auth.api.ts
-    application.api.ts
-    university.api.ts
-  lib/
-    apiClient.ts
-  hooks/
-    auth.hook.ts
-    application hooks in university.hook.ts
-    university.hook.ts
-```
-
-- TanStack Query handles server state, caching, refetching, and mutations.
-- Optimistic updates only where genuinely safe (no financial/academic-record ambiguity).
-- No business logic inside UI components — API modules and hooks own that boundary.
-
----
-
-## 12. Authentication Architecture
-
-- Login, Register, Google login, Logout, Refresh token
-- Protected route groups + role-based route protection using the existing auth guards
-- API requests send credentialed HTTP-only cookies
-- Current identity endpoint: `GET /api/v1/user/me` (`/api/v1/auth/me` is not mounted)
-- `USER` accounts may read and update their own `/api/v1/user/me` profile.
-- Role applications are submitted and fetched through
-  `/api/v1/applications` and `/api/v1/applications/me`.
-- The backend remains authoritative for authentication and authorization
-
----
-
-## 13. Forms
-
-Use the existing TanStack Form / Zod dependencies and form components, with:
-- Field-level validation
-- Backend validation error surfacing (mapped from API error envelope)
-- Loading state and disabled submit while in-flight
-- Success and error toast notifications
-
----
-
-## 14. Data Tables
-
-Reusable `DataTable` component supporting: search, filtering, sorting, pagination, loading state, empty state, row actions.
-
----
-
-## 15. Core Reusable Components
-
-```
-AppSidebar          Topbar              Breadcrumbs
-PageHeader          StatCard            DataTable
-SearchInput         FilterDropdown      Pagination
-StatusBadge         ConfirmDialog       LoadingSkeleton
-EmptyState          ErrorState          FormField
-DatePicker          Select              Modal
-Drawer              NotificationBell    ProfileMenu
+├── app/
+│   ├── (public)/
+│   │   ├── (marketing)/
+│   │   │   └── page.tsx                     # Landing page
+│   │   └── (authentication)/
+│   │       ├── login/page.tsx
+│   │       ├── register/page.tsx
+│   │       ├── verify-email/page.tsx
+│   │       ├── forgot-password/page.tsx
+│   │       └── reset-password/page.tsx
+│   └── (dashboard)/
+│       ├── layout.tsx                       # Shared dashboard shell (Sidebar, Topbar)
+│       ├── dashboard/page.tsx               # Dynamic role-based dashboard
+│       ├── curriculum/page.tsx              # Student degree roadmap & semester slots
+│       ├── semester-enrollment/page.tsx     # Student semester registration
+│       ├── my-courses/page.tsx              # Student course list & drop
+│       ├── attendance/page.tsx              # Student attendance view
+│       ├── exams/page.tsx                   # Student exams view
+│       ├── results/page.tsx                 # Student published results
+│       ├── transcript/page.tsx              # Student official transcript
+│       ├── fees/page.tsx                    # Student invoices & gateway checkout
+│       ├── faculty/
+│       │   ├── courses/page.tsx             # Faculty assigned courses
+│       │   ├── attendance/page.tsx          # Faculty attendance entry
+│       │   ├── exams/page.tsx               # Faculty exam manager
+│       │   └── results/page.tsx             # Faculty marks entry
+│       ├── admin/
+│       │   ├── users/page.tsx               # User management
+│       │   ├── students/page.tsx            # Student profile directory
+│       │   ├── faculty/page.tsx             # Faculty directory & filter
+│       │   ├── departments/page.tsx         # Departments CRUD
+│       │   ├── programs/page.tsx            # Programs CRUD
+│       │   ├── courses/page.tsx             # Course catalog CRUD
+│       │   ├── curriculum/page.tsx          # Visual curriculum builder
+│       │   ├── progressions/page.tsx        # Exam publication & semester completion
+│       │   ├── invoices/page.tsx            # Invoices overview
+│       │   ├── payments/page.tsx            # Payment transactions ledger
+│       │   └── audit-logs/page.tsx          # System audit logs
+│       └── workspace/[resource]/page.tsx    # Generic resource detail fallback
+├── api/
+│   ├── auth.api.ts                          # Login, register, OTP, refresh
+│   ├── user.api.ts                          # Profile, avatar upload
+│   ├── student.api.ts                       # Student profiles & enrollment history
+│   ├── faculty.api.ts                       # Faculty profiles, assigned courses
+│   ├── academic.api.ts                      # Departments, programs, course catalog
+│   ├── curriculum.api.ts                    # ProgramSemester & SemesterCourse APIs
+│   ├── enrollment.api.ts                    # Semester & Course enrollment actions
+│   ├── attendance.api.ts                    # Bulk attendance & student attendance
+│   ├── exam.api.ts                          # Exams CRUD & results
+│   ├── finance.api.ts                       # Invoices & payment gateway initiation
+│   ├── admin.api.ts                         # Dashboard stats, user moderation
+│   └── audit.api.ts                         # Audit logs
+├── components/
+│   ├── layout/
+│   │   ├── AppSidebar.tsx
+│   │   ├── Topbar.tsx
+│   │   └── Breadcrumbs.tsx
+│   ├── ui/                                  # shadcn/ui primitives
+│   ├── shared/
+│   │   ├── DataTable.tsx                    # Reusable server-paginated data table
+│   │   ├── StatCard.tsx
+│   │   ├── StatusBadge.tsx
+│   │   ├── ConfirmDialog.tsx
+│   │   ├── EmptyState.tsx
+│   │   └── LoadingSkeleton.tsx
+│   ├── student/
+│   │   ├── CurriculumRoadmap.tsx
+│   │   ├── SemesterEnrollmentModal.tsx
+│   │   └── TranscriptView.tsx
+│   ├── faculty/
+│   │   ├── AttendanceGrid.tsx
+│   │   └── MarksEntryTable.tsx
+│   ├── admin/
+│   │   ├── CurriculumBuilderSlot.tsx
+│   │   └── ResultPublicationModal.tsx
+│   └── finance/
+│       └── GatewayPaymentModal.tsx
+├── hooks/
+│   ├── useAuth.ts
+│   ├── useCurriculum.ts
+│   ├── useEnrollment.ts
+│   ├── useAttendance.ts
+│   └── useFinance.ts
+├── lib/
+│   ├── apiClient.ts                         # Configured ofetch instance with auth headers
+│   └── formatters.ts                        # Currency (BDT ৳), date, GPA formatting
+└── types/
+    └── api.types.ts                         # Shared backend response interfaces
 ```
 
 ---
 
-## 16. Design System
+## 11. API Integration & Error Envelope Handling
 
-- 8px spacing system
-- Cards with subtle borders, consistent border radius
-- Readable typography with clear hierarchy
-- Accessible contrast, keyboard navigation, visible focus states
-- Consistent icon usage (Lucide)
-- Minimal, uncluttered UI
+The client-side `apiClient.ts` wrapper unwraps the backend envelope:
 
----
-
-## 17. Responsive Strategy
-
-| Breakpoint | Behavior |
-|---|---|
-| Desktop | Sidebar + content |
-| Tablet | Collapsible sidebar |
-| Mobile | Bottom/slide navigation where appropriate |
-
-Tables degrade to horizontal scroll or responsive cards. Content must never overflow badly at any breakpoint.
+- **Success Format**: extracts `res.data` and pagination `res.meta`.
+- **Error Handling**: maps backend `errorSources` (path + message) directly into TanStack Form field errors and displays a clear Sonner toast for general error messages.
+- **Token Refresh**: intercepts `401 Unauthorized` responses and automatically attempts `POST /api/v1/auth/refresh-token`. If refresh fails, redirects smoothly to `/login`.
 
 ---
 
-## 18. UX Edge Cases to Handle
+## 12. Frontend State & Edge Cases to Handle
 
-Every state below needs a clear message and a meaningful next action:
-
-- No courses available
-- Course already registered
-- Prerequisite missing
-- Credit limit exceeded
-- Section full
-- Registration closed
-- No attendance recorded
-- No exam scheduled
-- Result not published
-- Invoice already paid
-- Payment failed
-- Network error
-- Unauthorized
-- Session expired
-- Server error
-- Empty search results
+1. **Previous Semester Not Completed**: When attempting to enroll in Semester $N$, disable the action button and display a clear alert badge: _"Semester $N-1$ must be COMPLETED before enrolling."_
+2. **Admission Fee Unpaid**: Disable Semester 1 enrollment with a CTA: _"Please pay the one-time admission fee to unlock Semester 1."_
+3. **Dropped Course Display**: Courses with `EnrollmentStatus.DROPPED` must clearly display a badge and excluded status from ongoing attendance or GPA calculations.
+4. **Draft vs Published Results**: Students must never see empty placeholders for unpublished marks; show a clean badge: _"Grading in progress"_.
+5. **Payment Failure**: When a gateway webhook returns `PaymentStatus.FAILED`, display a prominent notice on the invoice card with an easy **"Retry Payment"** action.
+6. **Concurrent Duplicate Attendance**: If a faculty member submits attendance for an already recorded date, gracefully surface the backend's duplicate constraint error.
 
 ---
 
-## 19. Hard Constraints
+## 13. Hard Constraints
 
-- Mirror backend domain terminology exactly — do not invent different names for entities/states.
-- Keep the four backend roles exactly: USER / STUDENT / FACULTY / ADMIN.
-- Do not create fake or optimistic payment success states.
-- Do not bypass or duplicate backend authorization logic.
-- Do not calculate business-critical academic or payment rules (GPA, prerequisites, credit limits, payment status) on the frontend — always defer to backend responses.
-
----
-
-## 20. Delivery Plan
-
-Implement incrementally in the existing frontend structure, prioritizing a
-cohesive, API-connected university experience. Do not fabricate analytics or
-payment states when the backend does not return the corresponding data.
+- **Never calculate GPA or CGPA on the frontend**: Always consume the backend's computed `semesterGpa` and transcript response.
+- **Never mark payments successful in client code**: A payment is only successful when reflected by backend status `SUCCESS` after webhook verification.
+- **No client-side prerequisite verification**: Progression rules are enforced by the backend's semester-gating logic.
+- **Strictly mirror backend terminology**: Use `ProgramSemester`, `SemesterCourse`, `SemesterEnrollment`, `CourseEnrollment`, `InvoiceType.ADMISSION`, `InvoiceType.SEMESTER`.
