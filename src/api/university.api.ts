@@ -88,6 +88,11 @@ export const universityApi = {
       { method: "DELETE" },
     ),
   myStudentProfile: () => apiClient<ApiEnvelope<Resource>>("/students/me"),
+  enrollMyProgram: (programId: string) =>
+    apiClient<ApiEnvelope<Resource>>("/students/me/program", {
+      method: "POST",
+      body: { programId },
+    }),
   createMyStudentProfile: (payload: Resource) =>
     apiClient<ApiEnvelope<Resource>>("/students/me", {
       method: "POST",
@@ -149,12 +154,13 @@ export const universityApi = {
       method: "POST",
       body: { programSemesterId },
     }),
+  mySemesterEnrollments: () =>
+    apiClient<ApiEnvelope<unknown>>("/enrollments/my-semesters"),
   attendanceBySemesterCourse: (semesterCourseId: string) =>
     apiClient<ApiEnvelope<unknown>>(
       `/attendance/semester-course/${encodeURIComponent(semesterCourseId)}`,
     ),
-  myAttendance: () =>
-    apiClient<ApiEnvelope<unknown>>("/attendance/my"),
+  myAttendance: () => apiClient<ApiEnvelope<unknown>>("/attendance/my"),
   recordAttendance: (semesterCourseId: string, body: Resource) =>
     apiClient<ApiEnvelope<Resource>>(
       `/attendance/semester-course/${encodeURIComponent(semesterCourseId)}`,
@@ -164,7 +170,9 @@ export const universityApi = {
       },
     ),
   programSemesters: (programId: string) =>
-    apiClient<ApiEnvelope<unknown>>(`/programs/${encodeURIComponent(programId)}/semesters`),
+    apiClient<ApiEnvelope<unknown>>(
+      `/programs/${encodeURIComponent(programId)}/semesters`,
+    ),
   semesterCourses: (programSemesterId: string) =>
     apiClient<ApiEnvelope<unknown>>(
       `/program-semesters/${encodeURIComponent(programSemesterId)}/courses`,
@@ -184,8 +192,7 @@ export const universityApi = {
       `/semester-courses/${encodeURIComponent(id)}`,
       { method: "DELETE" },
     ),
-  facultyCourses: () =>
-    apiClient<ApiEnvelope<unknown>>("/faculty/my-courses"),
+  facultyCourses: () => apiClient<ApiEnvelope<unknown>>("/faculty/my-courses"),
   publishExamResults: (id: string) =>
     apiClient<ApiEnvelope<Resource>>(
       `/exams/${encodeURIComponent(id)}/publish-results`,

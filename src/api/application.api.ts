@@ -5,7 +5,7 @@ import type { RoleApplication } from "@/types";
 export type CreateRoleApplicationPayload =
   | {
       requestedRole: "STUDENT";
-      programInterest: string;
+      programInterest?: string;
       statement: string;
     }
   | {

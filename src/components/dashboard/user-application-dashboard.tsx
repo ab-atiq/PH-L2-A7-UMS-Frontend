@@ -29,21 +29,14 @@ export default function UserApplicationDashboard({ user }: { user: User }) {
   const { data, isPending, isError, error, refetch } = useMyRoleApplication();
   const { mutateAsync: submitApplication, isPending: isSubmitting } =
     useCreateRoleApplication();
-  const programsQuery = useQuery({
-    queryKey: ["university", "application-program-options"],
-    queryFn: () =>
-      universityApi.list("programs", { limit: 100, status: "ACTIVE" }),
-  });
   const departmentsQuery = useQuery({
     queryKey: ["university", "application-department-options"],
     queryFn: () =>
       universityApi.list("departments", { limit: 100, status: "ACTIVE" }),
   });
-  const programs = recordsFrom(programsQuery.data);
   const departments = recordsFrom(departmentsQuery.data);
   const [requestedRole, setRequestedRole] =
     useState<ApplicationRole>("STUDENT");
-  const [programInterest, setProgramInterest] = useState("");
   const [departmentInterest, setDepartmentInterest] = useState("");
   const [highestQualification, setHighestQualification] = useState("");
   const [specialization, setSpecialization] = useState("");
@@ -61,7 +54,6 @@ export default function UserApplicationDashboard({ user }: { user: User }) {
       if (requestedRole === "STUDENT") {
         await submitApplication({
           requestedRole,
-          programInterest,
           statement,
         });
       } else {
@@ -233,37 +225,7 @@ export default function UserApplicationDashboard({ user }: { user: User }) {
               onSubmit={(event) => void submit(event)}
               className="mt-6 space-y-5"
             >
-              {requestedRole === "STUDENT" ? (
-                <label
-                  htmlFor="application-program"
-                  className="flex flex-col gap-2 text-sm font-medium"
-                >
-                  Program of interest
-                  <select
-                    id="application-program"
-                    required
-                    value={programInterest}
-                    onChange={(event) => setProgramInterest(event.target.value)}
-                    className="h-10 rounded-lg border bg-background px-3 text-sm"
-                    disabled={programsQuery.isPending}
-                  >
-                    <option value="">Select a program</option>
-                    {programs.map((program) => (
-                      <option
-                        key={String(program.id)}
-                        value={String(program.code)}
-                      >
-                        {String(program.name)} ({String(program.code)})
-                      </option>
-                    ))}
-                  </select>
-                  {programsQuery.isError && (
-                    <span role="alert" className="text-sm text-destructive">
-                      {getApiErrorMessage(programsQuery.error)}
-                    </span>
-                  )}
-                </label>
-              ) : (
+              {requestedRole === "FACULTY" && (
                 <>
                   <label
                     htmlFor="application-department"

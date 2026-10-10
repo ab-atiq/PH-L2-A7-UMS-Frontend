@@ -1,7 +1,5 @@
 "use client";
 
-import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
-import { getRoleWorkspacePath } from "@/lib/role-routes";
 import {
   ArrowUpRight,
   BookOpen,
@@ -11,6 +9,8 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import { useAdminStats, useGetMe, useUniversityList } from "@/hooks";
+import { getRoleWorkspacePath } from "@/lib/role-routes";
 import UserApplicationDashboard from "./user-application-dashboard";
 
 type RecordValue = Record<string, unknown>;
@@ -159,7 +159,7 @@ export default function UniversityOverview() {
           ? [
               {
                 href: "/student/academics",
-                label: "Program & semester enrollment",
+                label: "Enroll in a program & start Semester 1",
               },
               {
                 href: getRoleWorkspacePath(role, "enrollments"),

@@ -192,8 +192,7 @@ const configs: Record<string, ResourceConfig> = {
   exams: {
     title: "Exams",
     endpoint: "exams",
-    description:
-      "Review and manage exams for assigned program courses.",
+    description: "Review and manage exams for assigned program courses.",
     fields: [
       { name: "semesterCourseId", label: "Semester course ID", required: true },
       {
@@ -273,12 +272,7 @@ function isRecord(value: unknown): value is Resource {
 function rowsFrom(value: unknown): Resource[] {
   if (Array.isArray(value)) return value.filter(isRecord);
   if (!isRecord(value)) return [];
-  for (const key of [
-    "items",
-    "results",
-    "enrollments",
-    "records",
-  ]) {
+  for (const key of ["items", "results", "enrollments", "records"]) {
     if (Array.isArray(value[key])) return value[key].filter(isRecord);
   }
   return [];
@@ -297,6 +291,80 @@ function formatCell(value: unknown): string {
   }
   return "Details available";
 }
+
+function formatAdminEnrollmentCell(item: Resource, column: string) {
+  const student = isRecord(item.student) ? item.student : {};
+  const studentUser = isRecord(student.user) ? student.user : {};
+  const semesterCourse = isRecord(item.semesterCourse)
+    ? item.semesterCourse
+    : {};
+  const course = isRecord(semesterCourse.course) ? semesterCourse.course : {};
+  const programSemester = isRecord(semesterCourse.programSemester)
+    ? semesterCourse.programSemester
+    : {};
+  const program = isRecord(programSemester.program)
+    ? programSemester.program
+    : {};
+  const teacher = isRecord(semesterCourse.teacher)
+    ? semesterCourse.teacher
+    : {};
+  const teacherUser = isRecord(teacher.user) ? teacher.user : {};
+  const values: Record<string, unknown> = {
+    studentName: [studentUser.firstName, studentUser.lastName]
+      .filter(Boolean)
+      .join(" "),
+    studentNumber: student.studentId,
+    programName: program.name,
+    semesterName: programSemester.name,
+    courseName: course.title,
+    courseCode: course.courseCode,
+    facultyName: [teacherUser.firstName, teacherUser.lastName]
+      .filter(Boolean)
+      .join(" "),
+    status: item.status,
+    enrolledAt: item.enrolledAt,
+  };
+  return formatCell(values[column]);
+}
+
+function formatAdminInvoiceCell(item: Resource, column: string) {
+  const student = isRecord(item.student) ? item.student : {};
+  const user = isRecord(student.user) ? student.user : {};
+  const program = isRecord(item.program) ? item.program : {};
+  const semesterEnrollment = isRecord(item.semesterEnrollment)
+    ? item.semesterEnrollment
+    : {};
+  const programSemester = isRecord(semesterEnrollment.programSemester)
+    ? semesterEnrollment.programSemester
+    : {};
+  const values: Record<string, unknown> = {
+    invoiceNumber: item.invoiceNumber,
+    studentName: [user.firstName, user.lastName].filter(Boolean).join(" "),
+    studentNumber: student.studentId,
+    type: item.type,
+    programName: program.name,
+    semesterName: programSemester.name,
+    amount: item.amount,
+    status: item.status,
+    dueDate: item.dueDate,
+  };
+  return formatCell(values[column]);
+}
+
+const columnLabels: Record<string, string> = {
+  studentName: "Student",
+  studentNumber: "Student No.",
+  programName: "Program",
+  semesterName: "Semester",
+  courseName: "Course",
+  courseCode: "Course Code",
+  facultyName: "Faculty",
+  enrolledAt: "Enrolled At",
+  invoiceNumber: "Invoice Number",
+  type: "Fee Type",
+  amount: "Amount",
+  dueDate: "Due Date",
+};
 
 function toInputValue(value: unknown, kind?: FieldSpec["kind"]) {
   if (value === undefined || value === null) return "";
@@ -340,13 +408,12 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     title: string;
   } | null>(null);
   const [attendanceSemesterCourse, setAttendanceSemesterCourse] = useState("");
-  const [paymentGateway, setPaymentGateway] = useState<
-    "STRIPE" | "BKASH" | "SSLCOMMERZ"
-  >("STRIPE");
+  const [paymentGateway, setPaymentGateway] = useState<"STRIPE" | "BKASH">(
+    "STRIPE",
+  );
   const [isSaving, setIsSaving] = useState(false);
   const isAcademicAdminResource =
-    isAdmin &&
-    ["departments", "programs", "courses"].includes(resource);
+    isAdmin && ["departments", "programs", "courses"].includes(resource);
   const departmentOptionsQuery = useUniversityList(
     "departments",
     { limit: 100 },
@@ -371,11 +438,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
             ? { departmentId: departmentFilter }
             : {}),
         };
-  const query = useUniversityList(
-    endpoint ?? "",
-    listQuery,
-    Boolean(endpoint),
-  );
+  const query = useUniversityList(endpoint ?? "", listQuery, Boolean(endpoint));
   const queryClient = useQueryClient();
   const createMutation = useUniversityCreate(endpoint ?? "");
   const deleteMutation = useUniversityDelete(endpoint ?? "");
@@ -383,8 +446,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     queryKey: ["university", "attendance", attendanceSemesterCourse],
     queryFn: () =>
       universityApi.attendanceBySemesterCourse(attendanceSemesterCourse),
-    enabled:
-      resource === "attendance" && attendanceSemesterCourse.length > 0,
+    enabled: resource === "attendance" && attendanceSemesterCourse.length > 0,
   });
   const detailsQuery = useQuery({
     queryKey: ["university", endpoint, "details", selectedDetailId],
@@ -404,12 +466,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
               ? attendanceQuery.data?.data
               : query.data?.data,
           ),
-    [
-      attendanceQuery.data,
-      query.data,
-      resource,
-      userResponse,
-    ],
+    [attendanceQuery.data, query.data, resource, userResponse],
   );
   const displayedRows = useMemo(() => {
     if (isAcademicAdminResource) return rows;
@@ -426,6 +483,32 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     );
   }, [isAcademicAdminResource, rows, search]);
   const columns = useMemo(() => {
+    if (isAdmin && resource === "enrollments") {
+      return [
+        "studentName",
+        "studentNumber",
+        "programName",
+        "semesterName",
+        "courseName",
+        "courseCode",
+        "facultyName",
+        "status",
+        "enrolledAt",
+      ];
+    }
+    if (isAdmin && resource === "invoices") {
+      return [
+        "invoiceNumber",
+        "studentName",
+        "studentNumber",
+        "type",
+        "programName",
+        "semesterName",
+        "amount",
+        "status",
+        "dueDate",
+      ];
+    }
     const firstRow = displayedRows[0];
     return firstRow
       ? Object.keys(firstRow)
@@ -433,7 +516,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
           .filter((key) => !["password", "passwordHash"].includes(key))
           .slice(0, 6)
       : [];
-  }, [displayedRows]);
+  }, [displayedRows, isAdmin, resource]);
 
   if (!config) {
     return (
@@ -462,11 +545,10 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     (editableFields?.length && endpoint) ||
       (["attendance", "profile"].includes(resource) &&
         editableFields?.length &&
-          (resource === "profile" || attendanceSemesterCourse)),
+        (resource === "profile" || attendanceSemesterCourse)),
   );
   const canDelete =
-    isAdmin &&
-    ["departments", "programs", "courses"].includes(resource);
+    isAdmin && ["departments", "programs", "courses"].includes(resource);
   const statusOptions =
     resource === "departments" || resource === "programs"
       ? ["ACTIVE", "INACTIVE"]
@@ -487,20 +569,20 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     resource === "attendance"
       ? attendanceQuery.isPending
       : resource === "profile"
-          ? !userResponse
-          : query.isPending;
+        ? !userResponse
+        : query.isPending;
   const isError =
     resource === "attendance"
       ? attendanceQuery.isError
       : resource === "profile"
-          ? false
-          : query.isError;
+        ? false
+        : query.isError;
   const error =
     resource === "attendance"
       ? attendanceQuery.error
       : resource === "profile"
-          ? null
-          : query.error;
+        ? null
+        : query.error;
 
   const openCreateForm = () => {
     setEditItem(null);
@@ -739,7 +821,9 @@ export default function WorkspacePage({ resource }: { resource: string }) {
           Program course ID
           <input
             value={attendanceSemesterCourse}
-            onChange={(event) => setAttendanceSemesterCourse(event.target.value)}
+            onChange={(event) =>
+              setAttendanceSemesterCourse(event.target.value)
+            }
             placeholder="Enter the program-course UUID to view attendance"
             className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
@@ -752,11 +836,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
             value={paymentGateway}
             onChange={(event) => {
               const value = event.target.value;
-              if (
-                value === "STRIPE" ||
-                value === "BKASH" ||
-                value === "SSLCOMMERZ"
-              ) {
+              if (value === "STRIPE" || value === "BKASH") {
                 setPaymentGateway(value);
               }
             }}
@@ -764,7 +844,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
           >
             <option value="STRIPE">Stripe</option>
             <option value="BKASH">bKash</option>
-            <option value="SSLCOMMERZ">SSLCOMMERZ</option>
           </select>
         </label>
       )}
@@ -909,9 +988,10 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                     <tr>
                       {columns.map((column) => (
                         <th key={column} className="px-4 py-3 font-medium">
-                          {column
-                            .replace(/[A-Z]/g, (letter) => ` ${letter}`)
-                            .replace(/^./, (letter) => letter.toUpperCase())}
+                          {columnLabels[column] ??
+                            column
+                              .replace(/[A-Z]/g, (letter) => ` ${letter}`)
+                              .replace(/^./, (letter) => letter.toUpperCase())}
                         </th>
                       ))}
                       {hasRowActions && (
@@ -929,7 +1009,11 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                               key={column}
                               className="max-w-64 px-4 py-3 align-top text-foreground/85"
                             >
-                              {formatCell(item[column])}
+                              {isAdmin && resource === "enrollments"
+                                ? formatAdminEnrollmentCell(item, column)
+                                : isAdmin && resource === "invoices"
+                                  ? formatAdminInvoiceCell(item, column)
+                                  : formatCell(item[column])}
                             </td>
                           ))}
                           {hasRowActions && (
@@ -1250,12 +1334,10 @@ export default function WorkspacePage({ resource }: { resource: string }) {
             aria-modal="true"
             className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl"
           >
-            <h2 className="text-lg font-semibold">
-              Delete this record?
-            </h2>
+            <h2 className="text-lg font-semibold">Delete this record?</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              This will remove {pendingAction.title}. The backend may reject
-              the request if the record is in use.
+              This will remove {pendingAction.title}. The backend may reject the
+              request if the record is in use.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -1271,9 +1353,7 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                 disabled={deleteMutation.isPending}
                 className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
-                {deleteMutation.isPending
-                  ? "Deleting…"
-                  : "Confirm"}
+                {deleteMutation.isPending ? "Deleting…" : "Confirm"}
               </button>
             </div>
           </section>
