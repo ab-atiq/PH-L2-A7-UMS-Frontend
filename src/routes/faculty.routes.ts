@@ -18,11 +18,11 @@ export const facultyRoutes = [
       },
       {
         title: "My courses",
-        url: getRoleWorkspacePath("FACULTY", "sections"),
+        url: "/faculty/courses",
       },
       {
         title: "Schedule",
-        url: getRoleWorkspacePath("FACULTY", "sections"),
+        url: "/faculty/courses",
       },
       {
         title: "Attendance",

@@ -21,12 +21,8 @@ export const studentRoutes = [
         url: "/student/student-profile",
       },
       {
-        title: "Course catalog",
-        url: getRoleWorkspacePath("STUDENT", "courses"),
-      },
-      {
-        title: "Course registration",
-        url: getRoleWorkspacePath("STUDENT", "course-registration"),
+        title: "Program & semesters",
+        url: "/student/academics",
       },
       {
         title: "My courses",

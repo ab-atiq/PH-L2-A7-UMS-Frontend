@@ -144,23 +144,52 @@ export const universityApi = {
       method: "DELETE",
     }),
 
-  registerSection: (sectionId: string) =>
+  enrollSemester: (programSemesterId: string) =>
     apiClient<ApiEnvelope<Resource>>("/enrollments", {
       method: "POST",
-      body: { sectionId },
+      body: { programSemesterId },
     }),
-  dropEnrollment: (id: string) =>
-    apiClient<ApiEnvelope<null>>(`/enrollments/${encodeURIComponent(id)}`, {
-      method: "DELETE",
-    }),
-  attendanceBySection: (sectionId: string) =>
+  attendanceBySemesterCourse: (semesterCourseId: string) =>
     apiClient<ApiEnvelope<unknown>>(
-      `/attendance/section/${encodeURIComponent(sectionId)}`,
+      `/attendance/semester-course/${encodeURIComponent(semesterCourseId)}`,
     ),
-  recordAttendance: (sectionId: string, body: Resource) =>
+  myAttendance: () =>
+    apiClient<ApiEnvelope<unknown>>("/attendance/my"),
+  recordAttendance: (semesterCourseId: string, body: Resource) =>
     apiClient<ApiEnvelope<Resource>>(
-      `/attendance/section/${encodeURIComponent(sectionId)}`,
+      `/attendance/semester-course/${encodeURIComponent(semesterCourseId)}`,
+      {
+        method: "POST",
+        body: { ...body, semesterCourseId },
+      },
+    ),
+  programSemesters: (programId: string) =>
+    apiClient<ApiEnvelope<unknown>>(`/programs/${encodeURIComponent(programId)}/semesters`),
+  semesterCourses: (programSemesterId: string) =>
+    apiClient<ApiEnvelope<unknown>>(
+      `/program-semesters/${encodeURIComponent(programSemesterId)}/courses`,
+    ),
+  addSemesterCourse: (programSemesterId: string, body: Resource) =>
+    apiClient<ApiEnvelope<Resource>>(
+      `/program-semesters/${encodeURIComponent(programSemesterId)}/courses`,
       { method: "POST", body },
+    ),
+  updateSemesterCourse: (id: string, body: Resource) =>
+    apiClient<ApiEnvelope<Resource>>(
+      `/semester-courses/${encodeURIComponent(id)}`,
+      { method: "PATCH", body },
+    ),
+  deleteSemesterCourse: (id: string) =>
+    apiClient<ApiEnvelope<null>>(
+      `/semester-courses/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    ),
+  facultyCourses: () =>
+    apiClient<ApiEnvelope<unknown>>("/faculty/my-courses"),
+  publishExamResults: (id: string) =>
+    apiClient<ApiEnvelope<Resource>>(
+      `/exams/${encodeURIComponent(id)}/publish-results`,
+      { method: "POST" },
     ),
   createExam: (body: Resource) =>
     apiClient<ApiEnvelope<Resource>>("/exams", { method: "POST", body }),
@@ -182,11 +211,6 @@ export const universityApi = {
     apiClient<ApiEnvelope<Resource>>(
       `/notifications/${encodeURIComponent(id)}/read`,
       { method: "PATCH" },
-    ),
-  removeCoursePrerequisite: (courseId: string, prerequisiteId: string) =>
-    apiClient<ApiEnvelope<null>>(
-      `/course-prerequisites/${encodeURIComponent(courseId)}/${encodeURIComponent(prerequisiteId)}`,
-      { method: "DELETE" },
     ),
   startPayment: (
     invoiceId: string,

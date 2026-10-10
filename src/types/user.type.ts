@@ -44,10 +44,10 @@ export interface User {
     studentId: string;
     programId: string | null;
     departmentId: string | null;
-    currentSemesterId: string | null;
+    currentProgramSemesterId: string | null;
     program?: ProfileRelation | null;
     department?: ProfileRelation | null;
-    currentSemester?: ProfileRelation | null;
+    currentProgramSemester?: ProfileRelation | null;
   } | null;
   facultyProfile?: {
     id: string;

@@ -55,15 +55,6 @@ export function useUniversityDelete(resource: string) {
   });
 }
 
-export function useSectionRegistration() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: universityApi.registerSection,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["university"] }),
-  });
-}
-
 export function useMyRoleApplication(enabled = true) {
   return useQuery({
     queryKey: ["role-application", "me"],

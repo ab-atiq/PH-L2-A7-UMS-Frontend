@@ -78,7 +78,7 @@ export default function UniversityOverview() {
     role === "STUDENT",
   );
   const { data: courseData } = useUniversityList(
-    role === "FACULTY" ? "section-faculty" : "courses",
+    role === "FACULTY" ? "faculty/my-courses" : "courses",
     { limit: 100 },
     role === "FACULTY",
   );
@@ -128,8 +128,8 @@ export default function UniversityOverview() {
             label: "Manage courses",
           },
           {
-            href: getRoleWorkspacePath(role, "sections"),
-            label: "Manage sections",
+            href: "/admin/curriculum",
+            label: "Manage program curriculum",
           },
           {
             href: getRoleWorkspacePath(role, "audit-logs"),
@@ -139,7 +139,7 @@ export default function UniversityOverview() {
       : role === "FACULTY"
         ? [
             {
-              href: getRoleWorkspacePath(role, "sections"),
+              href: "/faculty/courses",
               label: "View my courses",
             },
             {
@@ -158,8 +158,8 @@ export default function UniversityOverview() {
         : role === "STUDENT"
           ? [
               {
-                href: getRoleWorkspacePath(role, "course-registration"),
-                label: "Register for courses",
+                href: "/student/academics",
+                label: "Program & semester enrollment",
               },
               {
                 href: getRoleWorkspacePath(role, "enrollments"),
@@ -238,7 +238,7 @@ export default function UniversityOverview() {
           ) : role === "FACULTY" ? (
             <>
               <Metric
-                title="Assigned sections"
+                title="Assigned program courses"
                 value={courses.length}
                 detail="Sections assigned to you"
                 icon={BookOpen}

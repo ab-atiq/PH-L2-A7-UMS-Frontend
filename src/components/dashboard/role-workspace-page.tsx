@@ -21,9 +21,6 @@ const roleResources: Record<UserRole, readonly string[]> = {
     "departments",
     "programs",
     "courses",
-    "semesters",
-    "sections",
-    "course-prerequisites",
     "enrollments",
     "invoices",
     "payments",
@@ -32,7 +29,6 @@ const roleResources: Record<UserRole, readonly string[]> = {
   ],
   FACULTY: [
     "profile",
-    "sections",
     "attendance",
     "exams",
     "results",
@@ -41,8 +37,6 @@ const roleResources: Record<UserRole, readonly string[]> = {
   ],
   STUDENT: [
     "profile",
-    "courses",
-    "course-registration",
     "enrollments",
     "attendance",
     "exams",

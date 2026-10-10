@@ -14,7 +14,7 @@ const services = [
     icon: BookOpen,
     title: "Academic services",
     description:
-      "Explore course offerings, register for sections, and keep your academic journey organized.",
+      "Explore your program curriculum, enroll by semester, and keep your academic journey organized.",
   },
   {
     icon: CalendarDays,

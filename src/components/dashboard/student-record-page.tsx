@@ -331,7 +331,7 @@ export default function StudentRecordPage() {
     { label: "Program", value: getRelatedName(student.program) },
     {
       label: "Current semester",
-      value: getRelatedName(student.currentSemester),
+      value: getRelatedName(student.currentProgramSemester),
     },
     { label: "Batch year", value: getString(student.batchYear) },
     { label: "Gender", value: getString(student.gender) },

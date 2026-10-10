@@ -74,7 +74,7 @@ function roleDetails(user: User): { label: string; value: string }[] {
       { label: "Department", value: relatedName(student?.department) },
       {
         label: "Current semester",
-        value: relatedName(student?.currentSemester),
+        value: relatedName(student?.currentProgramSemester),
       },
     ];
   }

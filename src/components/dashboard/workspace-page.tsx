@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowRight,
@@ -41,12 +41,6 @@ type ResourceConfig = {
 };
 
 const configs: Record<string, ResourceConfig> = {
-  "course-registration": {
-    title: "Course registration",
-    endpoint: "sections",
-    description:
-      "Review published sections and register for available courses.",
-  },
   profile: {
     title: "My profile",
     endpoint: null,
@@ -101,6 +95,25 @@ const configs: Record<string, ResourceConfig> = {
       { name: "code", label: "Program code", required: true },
       { name: "departmentId", label: "Department ID", required: true },
       {
+        name: "degreeType",
+        label: "Degree type",
+        kind: "select",
+        required: true,
+        options: ["BSC", "MSC", "PHD"],
+      },
+      {
+        name: "admissionFee",
+        label: "Admission fee (BDT)",
+        kind: "number",
+        required: true,
+      },
+      {
+        name: "semesterFee",
+        label: "Semester fee (BDT)",
+        kind: "number",
+        required: true,
+      },
+      {
         name: "durationYears",
         label: "Duration (years)",
         kind: "number",
@@ -117,58 +130,6 @@ const configs: Record<string, ResourceConfig> = {
         label: "Status",
         kind: "select",
         options: ["ACTIVE", "INACTIVE"],
-      },
-    ],
-  },
-  semesters: {
-    title: "Semesters",
-    endpoint: "semesters",
-    description: "Set up semester dates and course registration windows.",
-    fields: [
-      { name: "name", label: "Semester name", required: true },
-      { name: "startDate", label: "Start date", kind: "date", required: true },
-      { name: "endDate", label: "End date", kind: "date", required: true },
-      {
-        name: "registrationStart",
-        label: "Registration opens",
-        kind: "date",
-        required: true,
-      },
-      {
-        name: "registrationEnd",
-        label: "Registration closes",
-        kind: "date",
-        required: true,
-      },
-      {
-        name: "status",
-        label: "Status",
-        kind: "select",
-        options: [
-          "UPCOMING",
-          "REGISTRATION_OPEN",
-          "CURRENT",
-          "COMPLETED",
-          "ARCHIVED",
-        ],
-      },
-    ],
-  },
-  sections: {
-    title: "Sections",
-    endpoint: "sections",
-    description: "Review course sections, schedules, and teaching assignments.",
-    fields: [
-      { name: "courseId", label: "Course ID", required: true },
-      { name: "semesterId", label: "Semester ID", required: true },
-      { name: "sectionName", label: "Section name", required: true },
-      { name: "capacity", label: "Capacity", kind: "number", required: true },
-      { name: "room", label: "Room" },
-      {
-        name: "status",
-        label: "Status",
-        kind: "select",
-        options: ["DRAFT", "PUBLISHED", "CLOSED", "CANCELLED"],
       },
     ],
   },
@@ -198,9 +159,13 @@ const configs: Record<string, ResourceConfig> = {
   attendance: {
     title: "Attendance",
     endpoint: null,
-    description: "Attendance records are loaded for a specific course section.",
+    description: "Attendance records are loaded for a program-semester course.",
     fields: [
-      { name: "enrollmentId", label: "Enrollment ID", required: true },
+      {
+        name: "courseEnrollmentId",
+        label: "Course enrollment ID",
+        required: true,
+      },
       { name: "classDate", label: "Class date", kind: "date", required: true },
       {
         name: "status",
@@ -211,20 +176,6 @@ const configs: Record<string, ResourceConfig> = {
       },
       { name: "remarks", label: "Remarks" },
     ],
-  },
-  "course-prerequisites": {
-    title: "Course prerequisites",
-    endpoint: "course-prerequisites",
-    description: "Review and maintain course prerequisite relationships.",
-    fields: [
-      { name: "courseId", label: "Course ID", required: true },
-      {
-        name: "prerequisiteId",
-        label: "Prerequisite course ID",
-        required: true,
-      },
-    ],
-    createOnly: true,
   },
   transcript: {
     title: "Transcript",
@@ -237,21 +188,14 @@ const configs: Record<string, ResourceConfig> = {
     endpoint: "invoices/my",
     description:
       "Review your fee invoices and continue to secure payment checkout.",
-    fields: [
-      { name: "studentId", label: "Student profile ID", required: true },
-      { name: "description", label: "Description", required: true },
-      { name: "amount", label: "Amount", kind: "number", required: true },
-      { name: "dueDate", label: "Due date", kind: "date", required: true },
-      { name: "semesterId", label: "Semester ID" },
-    ],
   },
   exams: {
     title: "Exams",
     endpoint: "exams",
     description:
-      "Review and manage exams for the university's course sections.",
+      "Review and manage exams for assigned program courses.",
     fields: [
-      { name: "sectionId", label: "Section ID", required: true },
+      { name: "semesterCourseId", label: "Semester course ID", required: true },
       {
         name: "examType",
         label: "Exam type",
@@ -277,7 +221,11 @@ const configs: Record<string, ResourceConfig> = {
     fields: [
       { name: "examId", label: "Exam ID", required: true },
       { name: "studentId", label: "Student profile ID", required: true },
-      { name: "enrollmentId", label: "Enrollment ID", required: true },
+      {
+        name: "courseEnrollmentId",
+        label: "Course enrollment ID",
+        required: true,
+      },
       {
         name: "marksObtained",
         label: "Marks obtained",
@@ -329,7 +277,6 @@ function rowsFrom(value: unknown): Resource[] {
     "items",
     "results",
     "enrollments",
-    "sections",
     "records",
   ]) {
     if (Array.isArray(value[key])) return value[key].filter(isRecord);
@@ -358,7 +305,6 @@ function toInputValue(value: unknown, kind?: FieldSpec["kind"]) {
 }
 
 function getApiResource(resource: string, role?: UserRole) {
-  if (resource === "sections" && role === "FACULTY") return "section-faculty";
   if (resource === "invoices" && role === "ADMIN") return "invoices";
   return configs[resource]?.endpoint;
 }
@@ -366,10 +312,6 @@ function getApiResource(resource: string, role?: UserRole) {
 function getItemId(item: Resource) {
   const id = item.id;
   return typeof id === "string" ? id : null;
-}
-
-function getPrerequisiteId(item: Resource) {
-  return typeof item.prerequisiteId === "string" ? item.prerequisiteId : null;
 }
 
 function getUserFacingTitle(item: Resource) {
@@ -394,19 +336,17 @@ export default function WorkspacePage({ resource }: { resource: string }) {
   const [editItem, setEditItem] = useState<Resource | null>(null);
   const [formValues, setFormValues] = useState<Record<string, string>>({});
   const [pendingAction, setPendingAction] = useState<{
-    kind: "register" | "delete" | "prerequisite-delete";
     id: string;
     title: string;
   } | null>(null);
-  const [attendanceSection, setAttendanceSection] = useState("");
-  const [prerequisiteCourse, setPrerequisiteCourse] = useState("");
+  const [attendanceSemesterCourse, setAttendanceSemesterCourse] = useState("");
   const [paymentGateway, setPaymentGateway] = useState<
     "STRIPE" | "BKASH" | "SSLCOMMERZ"
   >("STRIPE");
   const [isSaving, setIsSaving] = useState(false);
   const isAcademicAdminResource =
     isAdmin &&
-    ["departments", "programs", "courses", "semesters"].includes(resource);
+    ["departments", "programs", "courses"].includes(resource);
   const departmentOptionsQuery = useUniversityList(
     "departments",
     { limit: 100 },
@@ -434,22 +374,17 @@ export default function WorkspacePage({ resource }: { resource: string }) {
   const query = useUniversityList(
     endpoint ?? "",
     listQuery,
-    Boolean(endpoint) && resource !== "course-prerequisites",
+    Boolean(endpoint),
   );
   const queryClient = useQueryClient();
   const createMutation = useUniversityCreate(endpoint ?? "");
   const deleteMutation = useUniversityDelete(endpoint ?? "");
   const attendanceQuery = useQuery({
-    queryKey: ["university", "attendance", attendanceSection],
-    queryFn: () => universityApi.attendanceBySection(attendanceSection),
-    enabled: resource === "attendance" && attendanceSection.length > 0,
-  });
-  const prerequisiteQuery = useQuery({
-    queryKey: ["university", "course-prerequisites", prerequisiteCourse],
+    queryKey: ["university", "attendance", attendanceSemesterCourse],
     queryFn: () =>
-      universityApi.get("course-prerequisites", prerequisiteCourse),
+      universityApi.attendanceBySemesterCourse(attendanceSemesterCourse),
     enabled:
-      resource === "course-prerequisites" && prerequisiteCourse.length > 0,
+      resource === "attendance" && attendanceSemesterCourse.length > 0,
   });
   const detailsQuery = useQuery({
     queryKey: ["university", endpoint, "details", selectedDetailId],
@@ -460,7 +395,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     },
     enabled: isAcademicAdminResource && Boolean(selectedDetailId),
   });
-  const registration = useUniversityRegistrationMutation();
   const rows = useMemo(
     () =>
       resource === "profile" && userResponse?.data
@@ -468,13 +402,10 @@ export default function WorkspacePage({ resource }: { resource: string }) {
         : rowsFrom(
             resource === "attendance"
               ? attendanceQuery.data?.data
-              : resource === "course-prerequisites"
-                ? prerequisiteQuery.data?.data
-                : query.data?.data,
+              : query.data?.data,
           ),
     [
       attendanceQuery.data,
-      prerequisiteQuery.data,
       query.data,
       resource,
       userResponse,
@@ -531,34 +462,22 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     (editableFields?.length && endpoint) ||
       (["attendance", "profile"].includes(resource) &&
         editableFields?.length &&
-        (resource === "profile" || attendanceSection)),
+          (resource === "profile" || attendanceSemesterCourse)),
   );
   const canDelete =
     isAdmin &&
-    ["departments", "programs", "courses", "semesters", "sections"].includes(
-      resource,
-    );
+    ["departments", "programs", "courses"].includes(resource);
   const statusOptions =
     resource === "departments" || resource === "programs"
       ? ["ACTIVE", "INACTIVE"]
       : resource === "courses"
         ? ["DRAFT", "PUBLISHED", "ARCHIVED"]
-        : resource === "semesters"
-          ? [
-              "UPCOMING",
-              "REGISTRATION_OPEN",
-              "CURRENT",
-              "COMPLETED",
-              "ARCHIVED",
-            ]
-          : [];
+        : [];
   const hasRowActions =
-    resource === "course-registration" ||
     resource === "enrollments" ||
     resource === "invoices" ||
     resource === "notifications" ||
     resource === "profile" ||
-    resource === "course-prerequisites" ||
     resource === "exams" ||
     resource === "results" ||
     canDelete;
@@ -567,25 +486,19 @@ export default function WorkspacePage({ resource }: { resource: string }) {
   const isPending =
     resource === "attendance"
       ? attendanceQuery.isPending
-      : resource === "course-prerequisites"
-        ? Boolean(prerequisiteCourse) && prerequisiteQuery.isPending
-        : resource === "profile"
+      : resource === "profile"
           ? !userResponse
           : query.isPending;
   const isError =
     resource === "attendance"
       ? attendanceQuery.isError
-      : resource === "course-prerequisites"
-        ? prerequisiteQuery.isError
-        : resource === "profile"
+      : resource === "profile"
           ? false
           : query.isError;
   const error =
     resource === "attendance"
       ? attendanceQuery.error
-      : resource === "course-prerequisites"
-        ? prerequisiteQuery.error
-        : resource === "profile"
+      : resource === "profile"
           ? null
           : query.error;
 
@@ -626,9 +539,9 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     setIsSaving(true);
     try {
       if (resource === "attendance") {
-        await universityApi.recordAttendance(attendanceSection, body);
+        await universityApi.recordAttendance(attendanceSemesterCourse, body);
         await queryClient.invalidateQueries({
-          queryKey: ["university", "attendance", attendanceSection],
+          queryKey: ["university", "attendance", attendanceSemesterCourse],
         });
         toast.add({
           title: "Attendance recorded",
@@ -701,35 +614,12 @@ export default function WorkspacePage({ resource }: { resource: string }) {
   const confirmAction = async () => {
     if (!pendingAction) return;
     try {
-      if (pendingAction.kind === "register") {
-        await registration.mutateAsync(pendingAction.id);
-        toast.add({
-          title: "Registration submitted",
-          description:
-            "The university system has received your enrollment request.",
-          type: "success",
-        });
-      } else if (pendingAction.kind === "prerequisite-delete") {
-        await universityApi.removeCoursePrerequisite(
-          prerequisiteCourse,
-          pendingAction.id,
-        );
-        await queryClient.invalidateQueries({
-          queryKey: ["university", "course-prerequisites", prerequisiteCourse],
-        });
-        toast.add({
-          title: "Prerequisite removed",
-          description: pendingAction.title,
-          type: "success",
-        });
-      } else {
-        await deleteMutation.mutateAsync(pendingAction.id);
-        toast.add({
-          title: "Record deleted",
-          description: `${pendingAction.title} has been removed.`,
-          type: "success",
-        });
-      }
+      await deleteMutation.mutateAsync(pendingAction.id);
+      toast.add({
+        title: "Record deleted",
+        description: `${pendingAction.title} has been removed.`,
+        type: "success",
+      });
       setPendingAction(null);
     } catch (actionError) {
       toast.add({
@@ -846,22 +736,11 @@ export default function WorkspacePage({ resource }: { resource: string }) {
     >
       {resource === "attendance" && (
         <label className="mb-5 flex max-w-xl flex-col gap-2 text-sm font-medium">
-          Section ID
+          Program course ID
           <input
-            value={attendanceSection}
-            onChange={(event) => setAttendanceSection(event.target.value)}
-            placeholder="Enter the section UUID to view attendance"
-            className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </label>
-      )}
-      {resource === "course-prerequisites" && (
-        <label className="mb-5 flex max-w-xl flex-col gap-2 text-sm font-medium">
-          Course ID
-          <input
-            value={prerequisiteCourse}
-            onChange={(event) => setPrerequisiteCourse(event.target.value)}
-            placeholder="Enter a course UUID to inspect its prerequisites"
+            value={attendanceSemesterCourse}
+            onChange={(event) => setAttendanceSemesterCourse(event.target.value)}
+            placeholder="Enter the program-course UUID to view attendance"
             className="h-10 rounded-lg border bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring"
           />
         </label>
@@ -1056,23 +935,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                           {hasRowActions && (
                             <td className="px-4 py-3">
                               <div className="flex flex-wrap gap-2">
-                                {resource === "course-registration" &&
-                                  isStudent &&
-                                  id && (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setPendingAction({
-                                          kind: "register",
-                                          id,
-                                          title: getUserFacingTitle(item),
-                                        })
-                                      }
-                                      className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
-                                    >
-                                      Register
-                                    </button>
-                                  )}
                                 {resource === "profile" && id && (
                                   <button
                                     type="button"
@@ -1103,7 +965,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                                       type="button"
                                       onClick={() =>
                                         setPendingAction({
-                                          kind: "delete",
                                           id,
                                           title: getUserFacingTitle(item),
                                         })
@@ -1134,24 +995,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                                       Pay invoice
                                     </button>
                                   ))}
-                                {resource === "enrollments" &&
-                                  isStudent &&
-                                  id &&
-                                  item.status === "ENROLLED" && (
-                                    <button
-                                      type="button"
-                                      onClick={() =>
-                                        setPendingAction({
-                                          kind: "delete",
-                                          id,
-                                          title: getUserFacingTitle(item),
-                                        })
-                                      }
-                                      className="rounded-md border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/5"
-                                    >
-                                      Drop course
-                                    </button>
-                                  )}
                                 {resource === "exams" &&
                                   id &&
                                   (isAdmin || role === "FACULTY") &&
@@ -1179,26 +1022,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
                                       className="rounded-md border px-3 py-1.5 text-xs font-medium hover:bg-muted"
                                     >
                                       Publish
-                                    </button>
-                                  )}
-                                {resource === "course-prerequisites" &&
-                                  isAdmin &&
-                                  getPrerequisiteId(item) && (
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        const prerequisiteId =
-                                          getPrerequisiteId(item);
-                                        if (!prerequisiteId) return;
-                                        setPendingAction({
-                                          kind: "prerequisite-delete",
-                                          id: prerequisiteId,
-                                          title: getUserFacingTitle(item),
-                                        });
-                                      }}
-                                      className="rounded-md border border-destructive/30 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/5"
-                                    >
-                                      Remove prerequisite
                                     </button>
                                   )}
                                 {resource === "notifications" &&
@@ -1428,14 +1251,11 @@ export default function WorkspacePage({ resource }: { resource: string }) {
             className="w-full max-w-md rounded-xl border bg-background p-6 shadow-xl"
           >
             <h2 className="text-lg font-semibold">
-              {pendingAction.kind === "register"
-                ? "Confirm course registration"
-                : "Delete this record?"}
+              Delete this record?
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {pendingAction.kind === "register"
-                ? `Submit a registration request for ${pendingAction.title}? Eligibility and seat availability are confirmed by the university system.`
-                : `This will remove ${pendingAction.title}. The backend may reject the request if the record is in use.`}
+              This will remove {pendingAction.title}. The backend may reject
+              the request if the record is in use.
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
@@ -1448,11 +1268,11 @@ export default function WorkspacePage({ resource }: { resource: string }) {
               <button
                 type="button"
                 onClick={() => void confirmAction()}
-                disabled={registration.isPending || deleteMutation.isPending}
+                disabled={deleteMutation.isPending}
                 className="h-9 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
               >
-                {registration.isPending || deleteMutation.isPending
-                  ? "Submitting…"
+                {deleteMutation.isPending
+                  ? "Deleting…"
                   : "Confirm"}
               </button>
             </div>
@@ -1461,15 +1281,6 @@ export default function WorkspacePage({ resource }: { resource: string }) {
       )}
     </WorkspaceFrame>
   );
-}
-
-function useUniversityRegistrationMutation() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: universityApi.registerSection,
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ["university"] }),
-  });
 }
 
 function WorkspaceFrame({

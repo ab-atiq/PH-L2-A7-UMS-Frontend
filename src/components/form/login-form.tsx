@@ -63,8 +63,8 @@ export default function LoginForm() {
             className="h-10 w-1/2"
             variant="outline"
             onClick={() => {
-              setEmail("atiqurrahmancse12@gmail.com");
-              setPassword("Passw0rd!123");
+              setEmail(process.env.NEXT_PUBLIC_USER_EMAIL ?? "");
+              setPassword(process.env.NEXT_PUBLIC_SEED_DEFAULT_PASSWORD ?? "");
             }}
           >
             Test User
@@ -73,11 +73,11 @@ export default function LoginForm() {
             className="h-10 w-1/2"
             variant="outline"
             onClick={() => {
-              setEmail("admin@university.edu");
-              setPassword("Passw0rd!Admin@123");
+              setEmail(process.env.NEXT_PUBLIC_STUDENT_EMAIL ?? "");
+              setPassword(process.env.NEXT_PUBLIC_SEED_DEFAULT_PASSWORD ?? "");
             }}
           >
-            Test Admin
+            Test Student
           </Button>
         </div>
         <div className="flex flex-row gap-2">
@@ -85,8 +85,8 @@ export default function LoginForm() {
             className="h-10 w-1/2"
             variant="outline"
             onClick={() => {
-              setEmail("faculty@university.edu");
-              setPassword("Passw0rd!Faculty@123");
+              setEmail(process.env.NEXT_PUBLIC_FACULTY_EMAIL ?? "");
+              setPassword(process.env.NEXT_PUBLIC_SEED_DEFAULT_PASSWORD ?? "");
             }}
           >
             Test Faculty
@@ -95,11 +95,11 @@ export default function LoginForm() {
             className="h-10 w-1/2"
             variant="outline"
             onClick={() => {
-              setEmail("cse1905004brur@gmail.com");
-              setPassword("Passw0rd!123");
+              setEmail(process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "");
+              setPassword(process.env.NEXT_PUBLIC_SEED_DEFAULT_PASSWORD ?? "");
             }}
           >
-            Test Student
+            Test Admin
           </Button>
         </div>
       </div>

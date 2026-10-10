@@ -139,8 +139,8 @@ function StudentEditor({
   );
   const [departmentId, setDepartmentId] = useState(text(student.departmentId));
   const [programId, setProgramId] = useState(text(student.programId));
-  const [currentSemesterId, setCurrentSemesterId] = useState(
-    text(student.currentSemesterId),
+  const [currentProgramSemesterId, setCurrentProgramSemesterId] = useState(
+    text(student.currentProgramSemesterId),
   );
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -159,12 +159,15 @@ function StudentEditor({
       admissionDate: admissionDate || null,
       departmentId: departmentId || null,
       programId: programId || null,
-      currentSemesterId: currentSemesterId || null,
+      currentProgramSemesterId: currentProgramSemesterId || null,
     });
   };
 
   const activePrograms = programs.filter(
     (program) => !departmentId || program.departmentId === departmentId,
+  );
+  const activeSemesters = semesters.filter(
+    (semester) => !programId || semester.programId === programId,
   );
   return (
     <Modal title="Edit student record" onClose={onClose}>
@@ -268,16 +271,18 @@ function StudentEditor({
             ))}
           </select>
         </Field>
-        <Field label="Current semester">
+        <Field label="Current program semester">
           <select
-            value={currentSemesterId}
-            onChange={(event) => setCurrentSemesterId(event.target.value)}
+            value={currentProgramSemesterId}
+            onChange={(event) =>
+              setCurrentProgramSemesterId(event.target.value)
+            }
             className="h-10 rounded-lg border bg-background px-3 text-sm"
           >
             <option value="">Unassigned</option>
-            {semesters.map((semester) => (
+            {activeSemesters.map((semester) => (
               <option key={text(semester.id)} value={text(semester.id)}>
-                {display(semester.name)}
+                {display(semester.name)} · {display(semester.program)}
               </option>
             ))}
           </select>
@@ -334,7 +339,7 @@ export default function StudentManagementPage() {
   const [search, setSearch] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [programId, setProgramId] = useState("");
-  const [currentSemesterId, setCurrentSemesterId] = useState("");
+  const [currentProgramSemesterId, setCurrentProgramSemesterId] = useState("");
   const [status, setStatus] = useState("");
   const [includeDeleted, setIncludeDeleted] = useState(false);
   const [page, setPage] = useState(1);
@@ -347,7 +352,7 @@ export default function StudentManagementPage() {
     ...(search.trim() ? { search: search.trim() } : {}),
     ...(departmentId ? { departmentId } : {}),
     ...(programId ? { programId } : {}),
-    ...(currentSemesterId ? { currentSemesterId } : {}),
+    ...(currentProgramSemesterId ? { currentProgramSemesterId } : {}),
     ...(status ? { status } : {}),
     ...(includeDeleted ? { includeDeleted: "true" } : {}),
   };
@@ -507,10 +512,10 @@ export default function StudentManagementPage() {
                 ))}
             </select>
             <select
-              aria-label="Filter by semester"
-              value={currentSemesterId}
+              aria-label="Filter by program semester"
+              value={currentProgramSemesterId}
               onChange={(event) => {
-                setCurrentSemesterId(event.target.value);
+                setCurrentProgramSemesterId(event.target.value);
                 filterChanged();
               }}
               className="h-10 rounded-lg border bg-background px-3 text-sm"
@@ -647,7 +652,7 @@ export default function StudentManagementPage() {
                           <dt className="text-xs text-muted-foreground">
                             Semester
                           </dt>
-                          <dd>{display(student.currentSemester)}</dd>
+                          <dd>{display(student.currentProgramSemester)}</dd>
                         </div>
                       </dl>
                       <div className="mt-4 flex flex-wrap justify-end gap-2">

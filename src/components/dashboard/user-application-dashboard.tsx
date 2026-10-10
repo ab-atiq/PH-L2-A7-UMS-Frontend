@@ -1,8 +1,9 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
 import { GraduationCap, Users } from "lucide-react";
 import { type FormEvent, useState } from "react";
-import { getApiErrorMessage } from "@/api";
+import { getApiErrorMessage, universityApi } from "@/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,10 +13,34 @@ import {
 } from "@/hooks/university.hook";
 import type { ApplicationRole, User } from "@/types";
 
+function recordsFrom(value: unknown): Record<string, unknown>[] {
+  if (Array.isArray(value))
+    return value.filter(
+      (item): item is Record<string, unknown> =>
+        typeof item === "object" && item !== null && !Array.isArray(item),
+    );
+  if (typeof value !== "object" || value === null) return [];
+  const data = (value as Record<string, unknown>).data;
+  if (Array.isArray(data)) return recordsFrom(data);
+  return [];
+}
+
 export default function UserApplicationDashboard({ user }: { user: User }) {
   const { data, isPending, isError, error, refetch } = useMyRoleApplication();
   const { mutateAsync: submitApplication, isPending: isSubmitting } =
     useCreateRoleApplication();
+  const programsQuery = useQuery({
+    queryKey: ["university", "application-program-options"],
+    queryFn: () =>
+      universityApi.list("programs", { limit: 100, status: "ACTIVE" }),
+  });
+  const departmentsQuery = useQuery({
+    queryKey: ["university", "application-department-options"],
+    queryFn: () =>
+      universityApi.list("departments", { limit: 100, status: "ACTIVE" }),
+  });
+  const programs = recordsFrom(programsQuery.data);
+  const departments = recordsFrom(departmentsQuery.data);
   const [requestedRole, setRequestedRole] =
     useState<ApplicationRole>("STUDENT");
   const [programInterest, setProgramInterest] = useState("");
@@ -214,15 +239,29 @@ export default function UserApplicationDashboard({ user }: { user: User }) {
                   className="flex flex-col gap-2 text-sm font-medium"
                 >
                   Program of interest
-                  <Input
+                  <select
                     id="application-program"
                     required
-                    minLength={2}
-                    maxLength={160}
                     value={programInterest}
                     onChange={(event) => setProgramInterest(event.target.value)}
-                    placeholder="For example, Computer Science"
-                  />
+                    className="h-10 rounded-lg border bg-background px-3 text-sm"
+                    disabled={programsQuery.isPending}
+                  >
+                    <option value="">Select a program</option>
+                    {programs.map((program) => (
+                      <option
+                        key={String(program.id)}
+                        value={String(program.code)}
+                      >
+                        {String(program.name)} ({String(program.code)})
+                      </option>
+                    ))}
+                  </select>
+                  {programsQuery.isError && (
+                    <span role="alert" className="text-sm text-destructive">
+                      {getApiErrorMessage(programsQuery.error)}
+                    </span>
+                  )}
                 </label>
               ) : (
                 <>
@@ -231,17 +270,31 @@ export default function UserApplicationDashboard({ user }: { user: User }) {
                     className="flex flex-col gap-2 text-sm font-medium"
                   >
                     Department of interest
-                    <Input
+                    <select
                       id="application-department"
                       required
-                      minLength={2}
-                      maxLength={160}
                       value={departmentInterest}
                       onChange={(event) =>
                         setDepartmentInterest(event.target.value)
                       }
-                      placeholder="For example, Department of Mathematics"
-                    />
+                      className="h-10 rounded-lg border bg-background px-3 text-sm"
+                      disabled={departmentsQuery.isPending}
+                    >
+                      <option value="">Select a department</option>
+                      {departments.map((department) => (
+                        <option
+                          key={String(department.id)}
+                          value={String(department.code)}
+                        >
+                          {String(department.name)} ({String(department.code)})
+                        </option>
+                      ))}
+                    </select>
+                    {departmentsQuery.isError && (
+                      <span role="alert" className="text-sm text-destructive">
+                        {getApiErrorMessage(departmentsQuery.error)}
+                      </span>
+                    )}
                   </label>
                   <label
                     htmlFor="application-qualification"

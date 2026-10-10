@@ -49,16 +49,8 @@ export const adminRoutes = [
         url: getRoleWorkspacePath("ADMIN", "courses"),
       },
       {
-        title: "Semesters",
-        url: getRoleWorkspacePath("ADMIN", "semesters"),
-      },
-      {
-        title: "Sections",
-        url: getRoleWorkspacePath("ADMIN", "sections"),
-      },
-      {
-        title: "Course prerequisites",
-        url: getRoleWorkspacePath("ADMIN", "course-prerequisites"),
+        title: "Curriculum",
+        url: "/admin/curriculum",
       },
       {
         title: "Enrollments",
