@@ -13,11 +13,14 @@ NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api/v1
 NEXT_PUBLIC_GOOGLE_CLIENT_ID=
 ```
 
-Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin plus `/api/v1`. The
-backend mounts routes such as `/auth` and `/user` under that prefix. Google
-sign-in is shown only when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is configured. The
-backend must allow the frontend origin with credentialed CORS for cookie-based
-authentication.
+Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin plus `/api/v1`. Browser
+requests use the frontend's `/api/v1` path and Next.js rewrites them to this
+backend URL, keeping cookie-based authentication on the frontend origin. For
+Vercel, configure this variable in the frontend project and redeploy. The
+backend deployment must be publicly accessible to the frontend rewrite; disable
+Vercel Authentication for its Production deployment. The backend must also
+allow the frontend origin with credentialed CORS. Google sign-in is shown only
+when `NEXT_PUBLIC_GOOGLE_CLIENT_ID` is configured.
 
 ## Run locally
 
