@@ -25,6 +25,10 @@ export const studentRoutes = [
         url: "/student/academics",
       },
       {
+        title: "Academic advisor",
+        url: "/student/academic-advisor",
+      },
+      {
         title: "My courses",
         url: getRoleWorkspacePath("STUDENT", "enrollments"),
       },

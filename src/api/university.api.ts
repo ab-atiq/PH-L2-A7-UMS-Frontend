@@ -35,6 +35,24 @@ export type AdminUserStatus =
   | "SUSPENDED"
   | "PENDING_VERIFICATION";
 
+export interface AcademicAssistantAction {
+  label: string;
+  href: string;
+}
+
+export interface AcademicAssistantReply {
+  answer: string;
+  actions: AcademicAssistantAction[];
+  suggestedQuestions: string[];
+}
+
+export interface AcademicRecommendation {
+  title: string;
+  description: string;
+  href: string;
+  category: "PROGRESSION" | "COURSEWORK" | "CURRICULUM";
+}
+
 function queryString(query?: ListQuery) {
   if (!query) return "";
   const params = new URLSearchParams();
@@ -156,6 +174,15 @@ export const universityApi = {
     }),
   mySemesterEnrollments: () =>
     apiClient<ApiEnvelope<unknown>>("/enrollments/my-semesters"),
+  askAcademicAssistant: (message: string) =>
+    apiClient<ApiEnvelope<AcademicAssistantReply>>("/assistant/chat", {
+      method: "POST",
+      body: { message },
+    }),
+  academicRecommendations: () =>
+    apiClient<
+      ApiEnvelope<{ recommendations: AcademicRecommendation[] }>
+    >("/assistant/recommendations"),
   attendanceBySemesterCourse: (semesterCourseId: string) =>
     apiClient<ApiEnvelope<unknown>>(
       `/attendance/semester-course/${encodeURIComponent(semesterCourseId)}`,
